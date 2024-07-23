@@ -1,4 +1,3 @@
-import gzip
 import re
 from collections import defaultdict
 from datetime import datetime, timezone
@@ -37,19 +36,6 @@ def ExtractREGroups(cadena, regex="."):
         return datos.groups()
 
     return None
-
-
-def ReadFile(filename):
-    if filename.endswith(".gz"):
-        with gzip.open(filename, "rt") as handin:
-            read_data = handin.read()
-            resData = read_data
-    else:
-        with open(filename, "r") as handin:
-            read_data = handin.read()
-            resData = ''.join(read_data)
-
-    return {'source': filename, 'data': resData, 'timestamp': getUTC()}
 
 
 def CuentaClaves(x):

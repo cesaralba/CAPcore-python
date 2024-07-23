@@ -1,8 +1,24 @@
+import gzip
 import logging
 import re
 from hashlib import file_digest, sha256
 
 import yaml
+
+from .Misc import getUTC
+
+
+def readFile(filename):
+    if filename.endswith(".gz"):
+        with gzip.open(filename, "rt") as handin:
+            read_data = handin.read()
+            resData = read_data
+    else:
+        with open(filename, "r") as handin:
+            read_data = handin.read()
+            resData = ''.join(read_data)
+
+    return {'source': filename, 'data': resData, 'timestamp': getUTC()}
 
 
 def loadYAML(filename: str):
