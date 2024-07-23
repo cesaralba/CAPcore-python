@@ -6,9 +6,10 @@ from hashlib import file_digest, sha256
 import yaml
 
 from .Misc import getUTC
+from .Web import DownloadedPage
 
 
-def readFile(filename):
+def readFile(filename: str) -> DownloadedPage:
     if filename.endswith(".gz"):
         with gzip.open(filename, "rt") as handin:
             read_data = handin.read()
@@ -18,7 +19,7 @@ def readFile(filename):
             read_data = handin.read()
             resData = ''.join(read_data)
 
-    return {'source': filename, 'data': resData, 'timestamp': getUTC()}
+    return DownloadedPage(source=filename, data=resData, timestamp=getUTC())
 
 
 def loadYAML(filename: str):

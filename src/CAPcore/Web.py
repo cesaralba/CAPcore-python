@@ -65,10 +65,9 @@ def downloadRawPage(dest, here=None, sanitizer: Optional[Callable[[bytes], bytes
                     ) -> DownloadedPage:
     """
     Descarga el contenido de una pagina y lo devuelve con metadatos
+    :param sanitizer: function to sanitize the result. Takes the downloaded content, returns the sanitized one
     :param dest: Resultado de un link, URL absoluta o relativa.
     :param here: Situación del browser
-    :param browser: Stateful Browser Object
-    :param config: Namespace de configuración (de argparse) para manipular ciertas características del browser
     :return: Diccionario con página bajada y metadatos varios
     """
     timeIn = time()
