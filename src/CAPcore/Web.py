@@ -33,7 +33,7 @@ def downloadPage(dest, home=None, browser: Optional[StatefulBrowser] = None, con
     """
     timeIn = time()
     if browser is None:
-        browser = creaBrowser(config)
+        browser = createBrowser(config)
 
     if home:
         browser.open(home)
@@ -133,7 +133,7 @@ def mergeURL(base, link):
     return result
 
 
-def creaBrowser(config=Namespace()):
+def createBrowser(config=Namespace()):
     browser = StatefulBrowser(soup_config={'features': "html.parser"}, raise_on_404=True, user_agent="Cosecha", )
 
     if 'verbose' in config:
