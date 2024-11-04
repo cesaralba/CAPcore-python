@@ -12,7 +12,7 @@ dependencies = [
     "requests>=2.31.0",
     "MechanicalSoup>=1.3.0",
     "python-dateutil>=2.9.0.post0",
-    "PyYAML>=6.0.1"
+    "PyYAML>=6.0.2"
 ]
 classifiers = [
     "License :: CAP license",

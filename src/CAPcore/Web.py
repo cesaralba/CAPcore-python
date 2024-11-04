@@ -19,7 +19,7 @@ DownloadedPage = namedtuple('DownloadedPage',
                             defaults={'home': None, 'browser': None, 'config': None, 'extra': None})
 
 
-def DownloadPage(dest, home=None, browser: Optional[StatefulBrowser] = None, config=Namespace(),
+def downloadPage(dest, home=None, browser: Optional[StatefulBrowser] = None, config=Namespace(),
                  sanitizer: Optional[Callable[[bytes], bytes]] = None
                  ) -> DownloadedPage:
     """
@@ -33,16 +33,16 @@ def DownloadPage(dest, home=None, browser: Optional[StatefulBrowser] = None, con
     """
     timeIn = time()
     if browser is None:
-        browser = creaBrowser(config)
+        browser = createBrowser(config)
 
     if home:
         browser.open(home)
-        target = MergeURL(home, dest)
-        logger.debug("DownloadPage: home %s link  %s", home, target)
+        target = mergeURL(home, dest)
+        logger.debug("downloadPage: home %s link  %s", home, target)
         response = browser.open(target)
     else:
         target = dest
-        logger.debug("DownloadPage: no home %s", target)
+        logger.debug("downloadPage: no home %s", target)
         response = browser.open(target)
 
     response.raise_for_status()
@@ -56,24 +56,23 @@ def DownloadPage(dest, home=None, browser: Optional[StatefulBrowser] = None, con
     timeOut = time()
     timeDL = timeOut - timeIn
 
-    logger.debug("DownloadPage: downloaded %s (%f)", target, timeDL)
+    logger.debug("downloadPage: downloaded %s (%f)", target, timeDL)
 
     return DownloadedPage(source=source, data=content, timestamp=getUTC(), home=home, browser=browser, config=config)
 
 
-def DownloadRawPage(dest, here=None, sanitizer: Optional[Callable[[bytes], bytes]] = None, *args, **kwargs
+def downloadRawPage(dest, here=None, sanitizer: Optional[Callable[[bytes], bytes]] = None, *args, **kwargs
                     ) -> DownloadedPage:
     """
     Descarga el contenido de una pagina y lo devuelve con metadatos
+    :param sanitizer: function to sanitize the result. Takes the downloaded content, returns the sanitized one
     :param dest: Resultado de un link, URL absoluta o relativa.
     :param here: Situación del browser
-    :param browser: Stateful Browser Object
-    :param config: Namespace de configuración (de argparse) para manipular ciertas características del browser
     :return: Diccionario con página bajada y metadatos varios
     """
     timeIn = time()
 
-    destURL = MergeURL(here, dest)
+    destURL = mergeURL(here, dest)
 
     response = requests.get(destURL, *args, **kwargs)
     response.raise_for_status()
@@ -82,14 +81,14 @@ def DownloadRawPage(dest, here=None, sanitizer: Optional[Callable[[bytes], bytes
     timeDL = timeOut - timeIn
 
     resultData = sanitizer(response.content) if sanitizer else response.content
-    logger.debug("DownloadPage: downloaded %s (%f)", destURL, timeDL)
+    logger.debug("downloadPage: downloaded %s (%f)", destURL, timeDL)
 
     result = DownloadedPage(source=response.url, data=resultData, timestamp=getUTC(), home=here, extra=response)
 
     return result
 
 
-def ExtraeGetParams(url):
+def extractGetParams(url):
     """
        Devuelve un diccionario con los parámetros pasados en la URL
     """
@@ -101,11 +100,11 @@ def ExtraeGetParams(url):
     return result
 
 
-def ComposeURL(url, argsToAdd=None, argsToRemove=None):
+def composeURL(url, argsToAdd=None, argsToRemove=None):
     if not (argsToAdd or argsToRemove):
         return url
 
-    urlGetParams = ExtraeGetParams(url)
+    urlGetParams = extractGetParams(url)
 
     newParams = urlGetParams
     if argsToAdd:
@@ -125,7 +124,7 @@ def ComposeURL(url, argsToAdd=None, argsToRemove=None):
     return result
 
 
-def MergeURL(base, link):
+def mergeURL(base, link):
     """ Wrapper for urllib.parse.urljoin
     """
 
@@ -134,7 +133,7 @@ def MergeURL(base, link):
     return result
 
 
-def creaBrowser(config=Namespace()):
+def createBrowser(config=Namespace()):
     browser = StatefulBrowser(soup_config={'features': "html.parser"}, raise_on_404=True, user_agent="Cosecha", )
 
     if 'verbose' in config:

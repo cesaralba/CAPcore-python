@@ -1,4 +1,3 @@
-import gzip
 import re
 from collections import defaultdict
 from datetime import datetime, timezone
@@ -30,7 +29,7 @@ class BadParameters(Exception):
             Exception.__init__(self, "Wrong (or missing) parameters")
 
 
-def ExtractREGroups(cadena, regex="."):
+def extractREGroups(cadena, regex="."):
     datos = re.match(pattern=regex, string=cadena)
 
     if datos:
@@ -39,29 +38,16 @@ def ExtractREGroups(cadena, regex="."):
     return None
 
 
-def ReadFile(filename):
-    if filename.endswith(".gz"):
-        with gzip.open(filename, "rt") as handin:
-            read_data = handin.read()
-            resData = read_data
-    else:
-        with open(filename, "r") as handin:
-            read_data = handin.read()
-            resData = ''.join(read_data)
-
-    return {'source': filename, 'data': resData, 'timestamp': getUTC()}
-
-
-def CuentaClaves(x):
+def countKeys(x):
     if not isinstance(x, (dict, defaultdict)):
-        raise ValueError("CuentaClaves: necesita un diccionario")
+        raise ValueError("countKeys: necesita un diccionario")
 
     resultado = defaultdict(int)
 
     for clave, valor in x.items():
 
         if not isinstance(valor, (dict, defaultdict)):
-            print(f"CuentaClaves: objeto de clave '{clave}' no es un diccionario")
+            print(f"countKeys: objeto de clave '{clave}' no es un diccionario")
             continue
 
         for subclave in valor:
@@ -70,9 +56,9 @@ def CuentaClaves(x):
     return resultado
 
 
-def Valores2Claves(x):
+def values2Keys(x):
     if not isinstance(x, (dict, defaultdict)):
-        raise ValueError("CuentaClaves: necesita un diccionario")
+        raise ValueError("countKeys: necesita un diccionario")
 
     resultado = defaultdict(set)
 
@@ -82,9 +68,9 @@ def Valores2Claves(x):
     return resultado
 
 
-def DumpDict(x, claves=None):
+def dumpDict(x, claves=None):
     if not isinstance(x, (dict, defaultdict)):
-        raise ValueError("CuentaClaves: necesita un diccionario")
+        raise ValueError("countKeys: necesita un diccionario")
 
     if claves:
         clavesOk = [clave for clave in claves if clave in x]
@@ -96,7 +82,7 @@ def DumpDict(x, claves=None):
     return "\n".join(result)
 
 
-def SubSet(lista, idx):
+def subSet(lista, idx):
     if not idx:
         return []
 
@@ -205,7 +191,7 @@ def datePub2Id(datePublished: str, formatDatePub: str, formatId: str) -> str:
 def stripPubDate(datePublished: str, formatDatePub: str) -> Tuple[str, str, str, str, str, str]:
     datePub = datePub2structTime(datePublished, formatDatePub)
     result = datePub.strftime('%Y'), datePub.strftime('%m'), datePub.strftime('%d'), datePub.strftime(
-            '%H'), datePub.strftime('%M'), datePub.strftime('%S')
+        '%H'), datePub.strftime('%M'), datePub.strftime('%S')
 
     return result
 
