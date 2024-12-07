@@ -1,7 +1,6 @@
 import unittest
 
-from Utils.LoggedDict import LoggedDict
-
+from  src.CAPcore.LoggedDict import LoggedDict
 
 class TestLoggedDict(unittest.TestCase):
     def test_constructor1(self):
