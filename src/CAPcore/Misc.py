@@ -29,6 +29,24 @@ class BadParameters(Exception):
             Exception.__init__(self, "Wrong (or missing) parameters")
 
 
+def removeSuffix(source: str, suffix: str) -> str:
+    """
+    Removes a suffix from the source parameter if source ends with it
+    :param source:
+    :param suffix:
+    :return:
+    """
+    if not isinstance(source, str) or not isinstance(suffix, str):
+        raise TypeError(
+            f"removeSuffix: one or both parameters are not a str: source: '{source}' suffix: '{suffix}'"
+        )
+
+    result = source
+    if source.endswith(suffix):
+        result = source[0 : (len(source) - len(suffix))]
+    return result
+
+
 def extractREGroups(cadena, regex="."):
     datos = re.match(pattern=regex, string=cadena)
 
@@ -138,14 +156,16 @@ def normalize_data_structs(data, **kwargs):
     """
 
     if isinstance(data, str):
-        return data.lower() if kwargs.get('lowercase_strings', False) else data
+        return data.lower() if kwargs.get("lowercase_strings", False) else data
 
     if isinstance(data, list):
         result = [normalize_data_structs(x, **kwargs) for x in data]
-        return sorted(result) if kwargs.get('sort_lists', False) else result
+        return sorted(result) if kwargs.get("sort_lists", False) else result
 
     if isinstance(data, dict):
-        return {k: normalize_data_structs(data[k], **kwargs) for k in sorted(data.keys())}
+        return {
+            k: normalize_data_structs(data[k], **kwargs) for k in sorted(data.keys())
+        }
 
     return data
 
@@ -165,15 +185,19 @@ def onlySetElement(myset):
     :param myset: a set
     :return:
     """
-    return list(myset.copy())[0] if isinstance(myset, (set, list)) and len(myset) == 1 else myset
+    return (
+        list(myset.copy())[0]
+        if isinstance(myset, (set, list)) and len(myset) == 1
+        else myset
+    )
 
 
 def cosaCorta(c1, c2):
-    return (c1 if len(c2) > len(c1) else c2)
+    return c1 if len(c2) > len(c1) else c2
 
 
 def cosaLarga(c1, c2):
-    return (c2 if len(c2) > len(c1) else c1)
+    return c2 if len(c2) > len(c1) else c1
 
 
 def datePub2structTime(datePublished, format):
@@ -188,10 +212,18 @@ def datePub2Id(datePublished: str, formatDatePub: str, formatId: str) -> str:
     return result
 
 
-def stripPubDate(datePublished: str, formatDatePub: str) -> Tuple[str, str, str, str, str, str]:
+def stripPubDate(
+    datePublished: str, formatDatePub: str
+) -> Tuple[str, str, str, str, str, str]:
     datePub = datePub2structTime(datePublished, formatDatePub)
-    result = datePub.strftime('%Y'), datePub.strftime('%m'), datePub.strftime('%d'), datePub.strftime(
-        '%H'), datePub.strftime('%M'), datePub.strftime('%S')
+    result = (
+        datePub.strftime("%Y"),
+        datePub.strftime("%m"),
+        datePub.strftime("%d"),
+        datePub.strftime("%H"),
+        datePub.strftime("%M"),
+        datePub.strftime("%S"),
+    )
 
     return result
 
@@ -206,32 +238,52 @@ def UTC2local(t: datetime):
     return t.astimezone(tz.tzlocal())
 
 
-def prepareBuilderPayloadDict(source: Dict, dest: object, fieldList: Optional[Iterable] = None,
-                              condition: Optional[Callable] = None
-                              ):
+def prepareBuilderPayloadDict(
+    source: Dict,
+    dest: object,
+    fieldList: Optional[Iterable] = None,
+    condition: Optional[Callable] = None,
+):
     auxList = fieldList
 
     auxCond = condition
     if auxCond is None:
         auxCond = lambda x: True
     if fieldList is None:
-        auxList = {k for k in dir(dest) if ((not callable(getattr(dest, k))) and auxCond(k))}
+        auxList = {
+            k for k in dir(dest) if ((not callable(getattr(dest, k))) and auxCond(k))
+        }
     result = {k: source[k] for k in auxList if k in source and source[k] is not None}
 
     return result
 
 
-def prepareBuilderPayloadObj(source: object, dest: object, fieldList: Optional[Iterable] = None,
-                             condition: Optional[Callable] = None
-                             ):
+def prepareBuilderPayloadObj(
+    source: object,
+    dest: object,
+    fieldList: Optional[Iterable] = None,
+    condition: Optional[Callable] = None,
+):
     auxList = fieldList
 
     auxCond = condition
     if auxCond is None:
         auxCond = lambda x: True
     if fieldList is None:
-        auxList = {k for k in dir(dest) if ((not callable(getattr(dest, k))) and auxCond(k) and not k.startswith('_'))}
+        auxList = {
+            k
+            for k in dir(dest)
+            if (
+                (not callable(getattr(dest, k)))
+                and auxCond(k)
+                and not k.startswith("_")
+            )
+        }
 
-    result = {k: getattr(source, k) for k in auxList if hasattr(source, k) and getattr(source, k) is not None}
+    result = {
+        k: getattr(source, k)
+        for k in auxList
+        if hasattr(source, k) and getattr(source, k) is not None
+    }
 
     return result
