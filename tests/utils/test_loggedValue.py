@@ -1,6 +1,6 @@
 import unittest
 
-from Utils.LoggedValue import LoggedValue
+from src.CAPcore.LoggedValue import LoggedValue
 
 
 class Test_LoggedValue(unittest.TestCase):
