@@ -9,7 +9,7 @@ Also, I am not very happy with the naming conventions -snake naming and case rul
 
 ## How to use it
 
-Add the following line to your requirements:
+Add the following line to your requirements file:
 
 ~~~
 git+https://github.com/cesaralba/CAPcore-python@develop
