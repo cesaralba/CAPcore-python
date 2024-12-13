@@ -8,7 +8,7 @@ class Test_LoggedValue(unittest.TestCase):
         v1 = LoggedValue()
 
         self.assertEqual(len(v1), 0)
-        self.assertEqual(v1.get(), None)
+        self.assertIsNone(v1.get())
 
     def test_constructor2(self):
         v1 = LoggedValue(5)
@@ -30,7 +30,7 @@ class Test_LoggedValue(unittest.TestCase):
         v1.clear()
 
         self.assertEqual(len(v1), 2)
-        self.assertEqual(v1.deleted, True)
+        self.assertTrue(v1.deleted)
         with self.assertRaises(ValueError):
             v1.get()
 
@@ -40,7 +40,7 @@ class Test_LoggedValue(unittest.TestCase):
 
         self.assertEqual(len(v1), 2)
         self.assertEqual(v1.get(), 4)
-        self.assertEqual(r1, True)
+        self.assertTrue(r1)
 
     def test_set2(self):
         v1 = LoggedValue(5)
@@ -48,7 +48,7 @@ class Test_LoggedValue(unittest.TestCase):
 
         self.assertEqual(len(v1), 1)
         self.assertEqual(v1.get(), 5)
-        self.assertEqual(r1, False)
+        self.assertFalse(r1)
 
     def test_set3(self):
         v1 = LoggedValue(5)
@@ -57,7 +57,7 @@ class Test_LoggedValue(unittest.TestCase):
 
         self.assertEqual(len(v1), 3)
         self.assertEqual(v1.get(), 5)
-        self.assertEqual(r1, True)
+        self.assertTrue(r1)
 
     def test_set4(self):
         v1 = LoggedValue(5)
@@ -65,8 +65,8 @@ class Test_LoggedValue(unittest.TestCase):
         r1 = v1.set(None)
 
         self.assertEqual(len(v1), 3)
-        self.assertEqual(v1.get(), None)
-        self.assertEqual(r1, True)
+        self.assertIsNone(v1.get())
+        self.assertTrue(r1)
 
     def test_set5(self):
         v1 = LoggedValue(5)
@@ -75,8 +75,8 @@ class Test_LoggedValue(unittest.TestCase):
         r1 = v1.set(None)
 
         self.assertEqual(len(v1), 3)
-        self.assertEqual(v1.get(), None)
-        self.assertEqual(r1, False)
+        self.assertIsNone(v1.get())
+        self.assertFalse(r1)
 
 
 if __name__ == '__main__':
