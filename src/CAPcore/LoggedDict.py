@@ -1,7 +1,7 @@
 from time import gmtime
 
 from .LoggedValue import LoggedValue
-
+from typing import Dict,Any
 INDENTSEPR = 2
 SEPRPR = ",\n" + " " * INDENTSEPR
 
@@ -79,11 +79,11 @@ class LoggedDict:
         return self.current.items()
 
     def diff(self,other):
-        changes={'added':dict(),'changed':dict(),'removed':dict(),'same':()}
-        changeCount=0
-
         if not isinstance(other,(dict,LoggedDict)):
             raise TypeError(f"Parameter expected to be a dict or LoggedDict. Provided {type(other)}")
+
+        result = LoggedDictDiff()
+
         currentKeys = {k for k,v in self.current.items() if not v.isDeleted}
         sharedKeys = set(currentKeys).intersection(other.keys())
         missingKeys = set(currentKeys).difference(other.keys())
@@ -92,21 +92,15 @@ class LoggedDict:
         for k in sorted(newKeys):
             if k in self.exclusions:
                 continue
-            changes['added'][k]=other.get(k)
-            changeCount += 1
+            result.addKey(k,other.get(k))
         for k in sorted(sharedKeys):
             currVal = self.get(k)
             otherVal= other.get(k)
-            if currVal != otherVal:
-                changes['changed'][k]=(currVal,otherVal)
-                changeCount += 1
+            result.change(k,currVal,otherVal)
         for k in sorted(missingKeys):
-            changes['removed'][k]=self.get(k)
-            changeCount += 1
+            result.removeKey(k,self.get(k))
 
-        print(changeCount,changes)
-
-
+        return result
 
     def __len__(self):
         currData = [k for k, v in self.current.items() if not v.isDeleted()]
@@ -123,6 +117,9 @@ class LoggedDict:
                       SEPRPR.join([f"{k.__repr__()}: {auxResult[k]}" for k in claves[:-1]]) +
                       SEPRPR + f"{claves[-1].__repr__()}: {auxResult[claves[-1]]}" + "\n}")
         return result
+
+    def __ne__(self, other):
+        return self.diff(other)
 
 
 class DictOfLoggedDict:
@@ -206,6 +203,28 @@ class DictOfLoggedDict:
 
         return set(auxList)
 
+    def diff(self,other:(Dict[Any,(LoggedDict,dict)],LoggedDict)):
+        if not isinstance(other,(dict,DictOfLoggedDict)):
+            raise TypeError(f"Parameter expected to be a dict or DictOfLoggedDict. Provided {type(other)}")
+
+        result = DictOfLoggedDictDiff()
+
+        currentKeys = set(self.current.keys())
+        sharedKeys = set(currentKeys).intersection(other.keys())
+        missingKeys = set(currentKeys).difference(other.keys())
+        newKeys = set(other.keys()).difference(currentKeys)
+
+        for k in sorted(newKeys):
+            result.addKey(k,other.get(k))
+        for k in sorted(sharedKeys):
+            currVal = self.get(k)
+            otherVal= other.get(k)
+            result.change(k,currVal,otherVal)
+        for k in sorted(missingKeys):
+            result.removeKey(k,self.get(k))
+
+        return result
+
     def __len__(self):
         return len(self.current)
 
@@ -222,6 +241,91 @@ class DictOfLoggedDict:
             result = result + "\n}"
             # TODO: WTF los espacios adicionales tras la coma
         return result
+
+    def __ne__(self, other):
+        return self.diff(other)
+
+class LoggedDictDiff:
+    def __init__(self):
+        self.changeCount:int = 0
+        self.added:dict = {}
+        self.changed:dict = {}
+        self.removed:dict = {}
+
+    def change(self,k,vOld,vNew):
+        if vOld != vNew:
+            self.changed[k]=(vOld,vNew)
+            self.changeCount +=1
+
+    def addKey(self,k,vNew):
+        self.added[k]=vNew
+        self.changeCount +=1
+
+    def removeKey(self,k,vOld):
+        self.removed[k]=vOld
+        self.changeCount +=1
+
+    def __bool__(self):
+        return (self.changeCount>0)
+
+    def show(self,indent:int=0, compact:bool=False,sepCompact=',')->str:
+        if self.changeCount == 0:
+            return ""
+        result= []
+        result.extend([(k,f"{k}: A '{v}'") for k,v in self.added.items()])
+        result.extend([(k,f"{k}: D '{v}'") for k,v in self.removed.items()])
+        result.extend([(k,f"{k}: C '{v[0]}' -> '{v[1]}'") for k,v in self.changed.items()])
+
+        auxSep = f"{sepCompact} " if compact else '\n'
+        auxIndent = 0 if compact else indent
+
+        resultStr = auxSep.join([f"{' '*((auxIndent*2)+1)}{v[1]}" for v in sorted(result,key=lambda x:x[0])])
+
+        return resultStr
+
+    def __repr__(self):
+        return self.show(compact=True)
+
+class DictOfLoggedDictDiff:
+    def __init__(self):
+        self.changeCount:int = 0
+        self.added:dict = {}
+        self.changed:dict = {}
+        self.removed:dict = {}
+
+    def change(self,k,vOld,vNew):
+        if vOld != vNew:
+            self.changed[k]=(vOld,vNew)
+            self.changeCount +=1
+
+    def addKey(self,k,vNew):
+        self.added[k]=vNew
+        self.changeCount +=1
+
+    def removeKey(self,k,vOld):
+        self.removed[k]=vOld
+        self.changeCount +=1
+
+    def __bool__(self):
+        return (self.changeCount>0)
+
+    def show(self,indent:int=0, compact:bool=False,sepCompact=','):
+        if self.changeCount == 0:
+            return ""
+        result= []
+        result.extend([(k,f"{k}: A '{v}'") for k,v in self.added.items()])
+        result.extend([(k,f"{k}: D '{v}'") for k,v in self.removed.items()])
+        result.extend([(k,f"{k}: C '{v[0]}' -> '{v[1]}'") for k,v in self.changed.items()])
+
+        auxSep = f"{sepCompact} " if compact else '\n'
+        auxIndent = 0 if compact else indent
+
+        resultStr = auxSep.join([f"{' '*((auxIndent*2)+1)}{v[1]}" for v in sorted(result,key=lambda x:x[0])])
+
+        return resultStr
+
+    def __repr__(self):
+        return self.show(compact=True)
 
 
 def dumpLoggedDict(k, v, indent=2):
