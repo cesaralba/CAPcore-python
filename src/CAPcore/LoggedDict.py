@@ -203,7 +203,7 @@ class DictOfLoggedDict:
 
         return set(auxList)
 
-    def diff(self,other:(Dict[Any,(LoggedDict,dict)],LoggedDict)):
+    def diff(self,other):  #:(Dict[Any,(LoggedDict,dict)],LoggedDict)
         if not isinstance(other,(dict,DictOfLoggedDict)):
             raise TypeError(f"Parameter expected to be a dict or DictOfLoggedDict. Provided {type(other)}")
 
