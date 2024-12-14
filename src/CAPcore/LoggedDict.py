@@ -78,6 +78,36 @@ class LoggedDict:
     def items(self):
         return self.current.items()
 
+    def diff(self,other):
+        changes={'added':dict(),'changed':dict(),'removed':dict(),'same':()}
+        changeCount=0
+
+        if not isinstance(other,(dict,LoggedDict)):
+            raise TypeError(f"Parameter expected to be a dict or LoggedDict. Provided {type(other)}")
+        currentKeys = {k for k,v in self.current.items() if not v.isDeleted}
+        sharedKeys = set(currentKeys).intersection(other.keys())
+        missingKeys = set(currentKeys).difference(other.keys())
+        newKeys = set(other.keys()).difference(currentKeys)
+
+        for k in sorted(newKeys):
+            if k in self.exclusions:
+                continue
+            changes['added'][k]=other.get(k)
+            changeCount += 1
+        for k in sorted(sharedKeys):
+            currVal = self.get(k)
+            otherVal= other.get(k)
+            if currVal != otherVal:
+                changes['changed'][k]=(currVal,otherVal)
+                changeCount += 1
+        for k in sorted(missingKeys):
+            changes['removed'][k]=self.get(k)
+            changeCount += 1
+
+        print(changeCount,changes)
+
+
+
     def __len__(self):
         currData = [k for k, v in self.current.items() if not v.isDeleted()]
         return len(currData)
