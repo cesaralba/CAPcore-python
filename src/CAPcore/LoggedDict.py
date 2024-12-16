@@ -316,7 +316,7 @@ class DictOfLoggedDictDiff:
         result= []
         result.extend([(k,f"{k}: A '{v}'") for k,v in self.added.items()])
         result.extend([(k,f"{k}: D '{v}'") for k,v in self.removed.items()])
-        result.extend([(k,f"{k}: C '{v[0]}' -> '{v[1]}'") for k,v in self.changed.items()])
+        result.extend([(k,f"{k}: C '{v}'") for k,v in self.changed.items()])
 
         auxSep = f"{sepCompact} " if compact else '\n'
         auxIndent = 0 if compact else indent
