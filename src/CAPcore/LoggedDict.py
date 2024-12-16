@@ -84,7 +84,7 @@ class LoggedDict:
 
         result = LoggedDictDiff()
 
-        currentKeys = {k for k,v in self.current.items() if not v.isDeleted}
+        currentKeys = {k for k,v in self.current.items() if not v.isDeleted()}
         sharedKeys = set(currentKeys).intersection(other.keys())
         missingKeys = set(currentKeys).difference(other.keys())
         newKeys = set(other.keys()).difference(currentKeys)
