@@ -293,9 +293,10 @@ class DictOfLoggedDictDiff:
         self.changed:dict = {}
         self.removed:dict = {}
 
-    def change(self,k,vOld,vNew):
-        if vOld != vNew:
-            self.changed[k]=(vOld,vNew)
+    def change(self,k,vOld:LoggedDict,vNew):
+        diff = vOld.diff(vNew)
+        if diff:
+            self.changed[k]=diff
             self.changeCount +=1
 
     def addKey(self,k,vNew):
