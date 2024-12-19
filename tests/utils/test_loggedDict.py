@@ -119,10 +119,51 @@ class TestLoggedDict(unittest.TestCase):
     def test_addExclusion2(self):
         d1 = LoggedDict()
         d1.update({'c':25})
-        r1=d1.addExclusion('c')
+        r1=d1.addExclusion({'c'})
 
         self.assertEqual(len(d1),0)
         self.assertTrue(r1)
+
+    def test_removeExclusion1(self):
+        d1 = LoggedDict(exclusions={'a','b'})
+        d1.removeExclusion('c')
+
+        self.assertEqual(len(d1.exclusions),2)
+
+    def test_removeExclusion2(self):
+        d1 = LoggedDict(exclusions={'a','b'})
+        d1.removeExclusion('a')
+
+        self.assertEqual(len(d1.exclusions),1)
+
+    def test_iters1(self):
+        d1= LoggedDict()
+        d1.update(dict(zip('abcd',range(0,4,1))))
+
+        k1=list(d1.keys())
+        i1=list(d1.items())
+        v1=list(d1.values())
+
+        self.assertEqual(k1,list('abcd'))
+        self.assertEqual(v1,list(range(0,4,1)))
+        self.assertEqual(i1,list(zip('abcd',range(0,4,1))))
+
+    def test_iters2(self):
+        d1= LoggedDict()
+        d1.update(dict(zip('abcd',range(0,4,1))))
+
+        d1.purge('c')
+
+        k1=list(d1.keys())
+        i1=list(d1.items())
+        v1=list(d1.values())
+
+        self.assertEqual(k1,list('abd'))
+        self.assertEqual(v1,[0,1,3])
+        self.assertEqual(i1,list(zip('abd',[0,1,3])))
+
+
+
 
 if __name__ == '__main__':
     unittest.main()

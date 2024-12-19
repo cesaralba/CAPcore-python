@@ -80,7 +80,7 @@ class DictOfLoggedDict:
         auxList = []
 
         for v in self.current.values():
-            auxList = auxList + list(v.keys())
+            auxList = auxList + list(v.keysV())
 
         return set(auxList)
 
