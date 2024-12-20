@@ -162,8 +162,34 @@ class TestLoggedDict(unittest.TestCase):
         self.assertEqual(v1,[0,1,3])
         self.assertEqual(i1,list(zip('abd',[0,1,3])))
 
+    def test_itersV1(self):
+        d1= LoggedDict()
+        d1.update(dict(zip('abcd',range(0,4,1))))
 
+        k1=list(d1.keysV())
+        i1=list(d1.itemsV())
+        v1=list(d1.valuesV())
+        di1=d1._asdict()
 
+        self.assertEqual(k1,list('abcd'))
+        self.assertEqual(v1,list(range(0,4,1)))
+        self.assertEqual(i1,list(zip('abcd',range(0,4,1))))
+        self.assertEqual(di1,dict(zip('abcd',range(0,4,1))))
 
-if __name__ == '__main__':
-    unittest.main()
+    def test_itersV2(self):
+        d1= LoggedDict()
+        d1.update(dict(zip('abcd',range(0,4,1))))
+
+        d1.purge('c')
+
+        k1=list(d1.keysV())
+        i1=list(d1.itemsV())
+        v1=list(["DELETED" if v.isDeleted() else v.get() for v in d1.valuesV()])
+        di1=d1._asdict()
+
+        numDeleted=sum([1 if v.isDeleted() else 0 for v in d1.valuesV()])
+
+        self.assertEqual(k1,list('abcd'))
+        self.assertEqual(v1,[0,1,"DELETED",3])
+        self.assertEqual(numDeleted,1)
+        self.assertEqual(di1,dict(zip('abd',[0,1,3])))

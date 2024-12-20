@@ -28,6 +28,10 @@ class LoggedDict:
         self.current[k] = currVal
         return changes
 
+    def __len__(self):
+        result = len(list(self.keys()))
+        return result
+
     def get(self, key, default=None):
         if key in self.current and not self.current[key].isDeleted():
             return self.__getitem__(key)
@@ -104,6 +108,13 @@ class LoggedDict:
     def itemsV(self):
         return self.current.items()
 
+    def valuesV(self):
+        return self.current.values()
+
+    def _asdict(self):
+        result = dict(self.items())
+        return result
+
     def diff(self, other):
         if not isinstance(other, (dict, LoggedDict)):
             raise TypeError(f"Parameter expected to be a dict or LoggedDict. Provided {type(other)}")
@@ -143,14 +154,6 @@ class LoggedDict:
             if k in self.exclusions:
                 continue
             self.__setitem__(k, other.get(k), timestamp=timestamp)
-
-    def _asdict(self):
-        result = {k: v for k, v in self.itemsV() if not v.isDeleted()}
-        return result
-
-    def __len__(self):
-        currData = [k for k, v in self.current.items() if not v.isDeleted()]
-        return len(currData)
 
     def __repr__(self):
         auxResult = {k: self.current[k].__repr__() for k in sorted(self.current)}

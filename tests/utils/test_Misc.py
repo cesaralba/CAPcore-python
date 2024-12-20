@@ -33,7 +33,3 @@ class TestRemoveSuffix(unittest.TestCase):
     def test_happyPath3(self):
         d1 = removeSuffix('a1233', '3')
         self.assertEqual(d1, 'a123')
-
-
-if __name__ == '__main__':
-    unittest.main()

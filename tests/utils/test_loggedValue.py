@@ -6,6 +6,7 @@ from time import struct_time
 class Test_LoggedValue(unittest.TestCase):
     def test_constructor1(self):
         v1 = LoggedValue()
+        v1.get()
 
         self.assertEqual(len(v1), 0)
         self.assertIsNone(v1.get())
@@ -167,7 +168,3 @@ class Test_LoggedValue(unittest.TestCase):
 
         v1 = LoggedValue(timestamp=time1)
         self.assertEqual(repr(v1),'None [t:2024-12-13 23:04:34+0000 l:0]')
-
-
-if __name__ == '__main__':
-    unittest.main()
