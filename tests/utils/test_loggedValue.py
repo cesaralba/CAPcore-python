@@ -1,7 +1,8 @@
 import unittest
+from time import struct_time
 
 from src.CAPcore.LoggedValue import LoggedValue
-from time import struct_time
+
 
 class Test_LoggedValue(unittest.TestCase):
     def test_constructor1(self):
@@ -19,7 +20,7 @@ class Test_LoggedValue(unittest.TestCase):
 
     def test_clear1(self):
         v1 = LoggedValue()
-        r1=v1.clear()
+        r1 = v1.clear()
 
         self.assertEqual(len(v1), 1)
         self.assertTrue(v1.deleted)
@@ -29,7 +30,7 @@ class Test_LoggedValue(unittest.TestCase):
 
     def test_clear2(self):
         v1 = LoggedValue(5)
-        r1=v1.clear()
+        r1 = v1.clear()
 
         self.assertEqual(len(v1), 2)
         self.assertTrue(v1.deleted)
@@ -39,8 +40,8 @@ class Test_LoggedValue(unittest.TestCase):
 
     def test_clear3(self):
         v1 = LoggedValue(5)
-        r1=v1.clear()
-        r2=v1.clear()
+        r1 = v1.clear()
+        r2 = v1.clear()
 
         self.assertEqual(len(v1), 2)
         self.assertTrue(v1.deleted)
@@ -96,75 +97,68 @@ class Test_LoggedValue(unittest.TestCase):
     def test_set6(self):
         time1 = struct_time((2024, 12, 13, 23, 4, 44, 4, 348, 0))
         time2 = struct_time((2024, 12, 13, 23, 4, 34, 4, 348, 0))
-        v1 = LoggedValue(v=5,timestamp=time1)
+        v1 = LoggedValue(v=5, timestamp=time1)
 
         with self.assertRaises(ValueError):
-            v1.set(v=6,timestamp=time2)
+            v1.set(v=6, timestamp=time2)
 
     def test_eq1(self):
-        v1=LoggedValue(5)
-        v2=LoggedValue(5)
+        v1 = LoggedValue(5)
+        v2 = LoggedValue(5)
 
-        self.assertEqual(v1,v2)
+        self.assertEqual(v1, v2)
 
     def test_eq2(self):
-        v1=LoggedValue(5)
-        v2=5
+        v1 = LoggedValue(5)
+        v2 = 5
 
-        self.assertEqual(v1,v2)
+        self.assertEqual(v1, v2)
 
     def test_eq3(self):
-        v1=LoggedValue()
-        v2=LoggedValue()
+        v1 = LoggedValue()
+        v2 = LoggedValue()
 
-        self.assertEqual(v1,v2)
+        self.assertEqual(v1, v2)
 
     def test_eq4(self):
-        v1=LoggedValue()
-        v2=None
+        v1 = LoggedValue()
+        v2 = None
 
-        self.assertEqual(v1,v2)
+        self.assertEqual(v1, v2)
 
     def test_eq5(self):
-        v1=LoggedValue(5)
-        v2=None
+        v1 = LoggedValue(5)
+        v2 = None
 
-        self.assertNotEqual(v1,v2)
+        self.assertNotEqual(v1, v2)
 
     def test_eq6(self):
-        v1=LoggedValue()
-        v2=5
+        v1 = LoggedValue()
+        v2 = 5
 
-        self.assertNotEqual(v1,v2)
+        self.assertNotEqual(v1, v2)
 
     def test_eq8(self):
-        v1=LoggedValue()
+        v1 = LoggedValue()
         v1.clear()
-        v2=5
+        v2 = 5
 
-        self.assertNotEqual(v1,v2)
-
-    # def test_eq9(self):
-    #     v1=LoggedValue()
-    #     v1.clear()
-    #     v2=None
-    #
-    #     self.assertNotEqual(v1,v2)
+        self.assertNotEqual(v1, v2)
 
     def test_repr1(self):
         time1 = struct_time((2024, 12, 13, 23, 4, 34, 4, 348, 0))
         time2 = struct_time((2024, 12, 13, 23, 4, 44, 4, 348, 0))
         time3 = struct_time((2024, 12, 13, 23, 4, 54, 4, 348, 0))
 
-        v1 = LoggedValue(v=5,timestamp=time1)
-        self.assertEqual(repr(v1),'5 [t:2024-12-13 23:04:34+0000 l:1]')
-        v1.set(6,timestamp=time2)
-        self.assertEqual(repr(v1),'6 [t:2024-12-13 23:04:44+0000 l:2]')
+        v1 = LoggedValue(v=5, timestamp=time1)
+        self.assertEqual(repr(v1), '5 [t:2024-12-13 23:04:34+0000 l:1]')
+        v1.set(6, timestamp=time2)
+        self.assertEqual(repr(v1), '6 [t:2024-12-13 23:04:44+0000 l:2]')
         v1.clear(timestamp=time3)
-        self.assertEqual(repr(v1),'None [t:2024-12-13 23:04:54+0000 D l:3]')
+        self.assertEqual(repr(v1), 'None [t:2024-12-13 23:04:54+0000 D l:3]')
 
     def test_repr2(self):
         time1 = struct_time((2024, 12, 13, 23, 4, 34, 4, 348, 0))
 
         v1 = LoggedValue(timestamp=time1)
-        self.assertEqual(repr(v1),'None [t:2024-12-13 23:04:34+0000 l:0]')
+        self.assertEqual(repr(v1), 'None [t:2024-12-13 23:04:34+0000 l:0]')

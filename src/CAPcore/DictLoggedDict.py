@@ -1,6 +1,9 @@
 from time import gmtime
 
-from src.CAPcore.LoggedDict import LoggedDict, dumpLoggedDict, INDENTSEPR, SEPRPR
+from .LoggedDict import LoggedDict
+
+INDENTSEPR = 2
+SEPRPR = ",\n" + " " * INDENTSEPR
 
 
 class DictOfLoggedDict:
@@ -62,8 +65,7 @@ class DictOfLoggedDict:
         self.exclusions.update(set(kargs))
 
         for v in self.current.values():
-            v.addExclusion(set(kargs))
-        # TOTHINK: Qué hacer con los valores almacenados y que han quedado excluidos?
+            v.addExclusion(set(kargs))  # TOTHINK: Qué hacer con los valores almacenados y que han quedado excluidos?
 
     def removeExclusion(self, *kargs):
         self.exclusions.remove(set(kargs).intersection(self.exclusions))
@@ -84,8 +86,8 @@ class DictOfLoggedDict:
 
         return set(auxList)
 
-    def diff(self,other):  #:(Dict[Any,(LoggedDict,dict)],LoggedDict)
-        if not isinstance(other,(dict,DictOfLoggedDict)):
+    def diff(self, other):  #:(Dict[Any,(LoggedDict,dict)],LoggedDict)
+        if not isinstance(other, (dict, DictOfLoggedDict)):
             raise TypeError(f"Parameter expected to be a dict or DictOfLoggedDict. Provided {type(other)}")
 
         result = DictOfLoggedDictDiff()
@@ -96,13 +98,13 @@ class DictOfLoggedDict:
         newKeys = set(other.keys()).difference(currentKeys)
 
         for k in sorted(newKeys):
-            result.addKey(k,other.get(k))
+            result.addKey(k, other.get(k))
         for k in sorted(sharedKeys):
             currVal = self.get(k)
-            otherVal= other.get(k)
-            result.change(k,currVal,otherVal)
+            otherVal = other.get(k)
+            result.change(k, currVal, otherVal)
         for k in sorted(missingKeys):
-            result.removeKey(k,self.get(k))
+            result.removeKey(k, self.get(k))
 
         return result
 
@@ -119,8 +121,7 @@ class DictOfLoggedDict:
             claves = sorted(auxResult.keys())
             result = "{" + " " * (INDENTSEPR - 1) + dumpLoggedDict(claves[0], auxResult[claves[0]]) + SEPRPR + " "
             result = result + (SEPRPR + " ").join([dumpLoggedDict(k, auxResult[k]) for k in claves[1:]])
-            result = result + "\n}"
-            # TODO: WTF los espacios adicionales tras la coma
+            result = result + "\n}"  # TODO: WTF los espacios adicionales tras la coma
         return result
 
     def __ne__(self, other):
@@ -129,42 +130,56 @@ class DictOfLoggedDict:
 
 class DictOfLoggedDictDiff:
     def __init__(self):
-        self.changeCount:int = 0
-        self.added:dict = {}
-        self.changed:dict = {}
-        self.removed:dict = {}
+        self.changeCount: int = 0
+        self.added: dict = {}
+        self.changed: dict = {}
+        self.removed: dict = {}
 
-    def change(self,k,vOld:LoggedDict,vNew):
+    def change(self, k, vOld: LoggedDict, vNew):
         diff = vOld.diff(vNew)
         if diff:
-            self.changed[k]=diff
-            self.changeCount +=1
+            self.changed[k] = diff
+            self.changeCount += 1
 
-    def addKey(self,k,vNew):
-        self.added[k]=vNew
-        self.changeCount +=1
+    def addKey(self, k, vNew):
+        self.added[k] = vNew
+        self.changeCount += 1
 
-    def removeKey(self,k,vOld):
-        self.removed[k]=vOld
-        self.changeCount +=1
+    def removeKey(self, k, vOld):
+        self.removed[k] = vOld
+        self.changeCount += 1
 
     def __bool__(self):
-        return (self.changeCount>0)
+        return (self.changeCount > 0)
 
-    def show(self,indent:int=0, compact:bool=False,sepCompact=','):
+    def show(self, indent: int = 0, compact: bool = False, sepCompact=','):
         if self.changeCount == 0:
             return ""
-        result= []
-        result.extend([(k,f"{k}: A '{v}'") for k,v in self.added.items()])
-        result.extend([(k,f"{k}: D '{v}'") for k,v in self.removed.items()])
-        result.extend([(k,f"{k}: C '{v}'") for k,v in self.changed.items()])
+        result = []
+        result.extend([(k, f"{k}: A '{v}'") for k, v in self.added.items()])
+        result.extend([(k, f"{k}: D '{v}'") for k, v in self.removed.items()])
+        result.extend([(k, f"{k}: C '{v}'") for k, v in self.changed.items()])
 
         auxSep = f"{sepCompact} " if compact else '\n'
         auxIndent = 0 if compact else indent
 
-        resultStr = auxSep.join([f"{' '*((auxIndent*2)+1)}{v[1]}" for v in sorted(result,key=lambda x:x[0])])
+        resultStr = auxSep.join([f"{' ' * ((auxIndent * 2) + 1)}{v[1]}" for v in sorted(result, key=lambda x: x[0])])
 
         return resultStr
 
     def __repr__(self):
         return self.show(compact=True)
+
+
+def dumpLoggedDict(k, v, indent=2):
+    AUXSEP = "\n" + " " * (indent + 1)
+    vSplit = v.split('\n')
+
+    if len(vSplit) == 1:
+        result = (" " * indent) + f"{repr(k)}: {v}"
+    else:
+        result = (" " * (indent - 2)) + f"{repr(k)}: {vSplit[0]}" + AUXSEP
+        result = result + AUXSEP.join(vSplit[1:])
+        result = result + " " * (indent + 1)
+
+    return result
