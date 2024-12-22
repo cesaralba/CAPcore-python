@@ -61,14 +61,14 @@ class LoggedDictDiff:
     __str__ = __repr__
 
 class LoggedDict:
-    def __init__(self, exclusions: Optional[Set] = None):
+    def __init__(self, exclusions: Optional[Set] = None, timestamp=None):
 
         if exclusions is not None and not isinstance(exclusions, (set, list, tuple)):
             raise TypeError(f"LoggedDict: expected set/list/tuple for exclusions: {exclusions}")
 
         self.current = dict()
-        self.exclusions = exclusions or set()
-        self.timestamp = gmtime()
+        self.exclusions:Set[str] = set(exclusions) if exclusions else set()
+        self.timestamp = timestamp or gmtime()
 
     def __getitem__(self, item):
         return self.current.__getitem__(item).get()
