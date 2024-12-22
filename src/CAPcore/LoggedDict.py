@@ -58,9 +58,10 @@ class LoggedDictDiff:
     def __repr__(self):
         return self.show(compact=True)
 
+    __str__ = __repr__
 
 class LoggedDict:
-    def __init__(self, exclusions: set = None):
+    def __init__(self, exclusions: Optional[Set] = None):
 
         if exclusions is not None and not isinstance(exclusions, (set, list, tuple)):
             raise TypeError(f"LoggedDict: expected set/list/tuple for exclusions: {exclusions}")
@@ -111,7 +112,7 @@ class LoggedDict:
 
         return any(result)
 
-    def purge(self, *kargs, timestamp=None):
+    def purge(self, *kargs, timestamp=None)->bool:
         changeTime = timestamp or gmtime()
         result = []
         keys2delete = set(chain(*kargs))
@@ -124,7 +125,7 @@ class LoggedDict:
 
         return any(result)
 
-    def addExclusion(self, *kargs):
+    def addExclusion(self, *kargs) -> bool:
         keys2add = set(chain(*kargs))
         changed = False
         self.exclusions.update(keys2add)
