@@ -1,45 +1,170 @@
-from time import gmtime
+from functools import wraps
+from itertools import chain
+from time import gmtime, struct_time, strftime
+from typing import Optional, Set, List, Dict
 
 from .LoggedDict import LoggedDict
+from .LoggedValue import DATEFORMAT
 
 INDENTSEPR = 2
 SEPRPR = ",\n" + " " * INDENTSEPR
 
+def _checkDeletedUpdate(func):
+    @wraps(func)
+    def wrapper(self,*kargs,**kwargs):
+        if self.deleted:
+            raise ValueError("Attempting to update a deleted record")
+        result = False
+        purgedKWParams= {k:v for k,v in kwargs.items() if k not in {'timestamp'}}
+        print(f"_checkDeletedUpdate {func.__name__} {kargs} {kwargs}")
+        changes = self.diff(*kargs,**purgedKWParams)
+        if changes:
+            result = func(self,*kargs,**kwargs)
+            dateField = kwargs.get('timestamp',gmtime())
+            self.addHistory(dateField,f"Updated data {changes}")
+        return result
+    return wrapper
+
+def _checkDeletedRead(func):
+    @wraps(func)
+    def wrapper(self,*kargs,**kwargs):
+        print(f"_checkDeletedRead {func.__name__} {kargs} {kwargs}")
+
+        if self.deleted:
+            raise ValueError("Attempting to read a deleted record")
+        result = func(self,*kargs,**kwargs)
+        return result
+    return wrapper
+
+
+class DictData(LoggedDict):
+    def __init__(self,timestamp:Optional[struct_time]=None,exclusions:Optional[Set]=None):
+        super(DictData,self).__init__(exclusions=exclusions)
+        self.last_updated = timestamp or gmtime()
+        self.last_updated = None
+        self.deleted=False
+        self.history:List = []
+
+        self.addHistory(data="Creation without data",timestamp=self.last_updated)
+
+    def isDeleted(self):
+        return self.deleted
+
+    def addHistory(self,data,timestamp:Optional[struct_time]=None):
+        dateField= timestamp or gmtime()
+        self.history.append((dateField,data))
+
+    def delete(self,timestamp:Optional[struct_time]=None)->bool:
+        if self.isDeleted():
+            return False
+        dateField= timestamp or gmtime()
+        self.last_updated=dateField
+        self.deleted=True
+        self.addHistory(data="Deleted",timestamp=dateField)
+
+        return True
+
+    def restore(self,timestamp:Optional[struct_time]=None)->bool:
+        if not self.isDeleted():
+            return False
+
+        dateField= timestamp or gmtime()
+        self.last_updated=dateField
+        self.deleted=False
+        self.addHistory(data="Restored",timestamp=dateField)
+
+        return True
+
+    def showV(self,compact=True, indent: int = 0, firstIndent: Optional[int] = None):
+        delTxt = " D" if self.deleted else ""
+        dateTxt = strftime(DATEFORMAT, self.last_updated)
+        lenTxt = f"l"":"f"{len(self.history)}"
+
+        result=  f"{super(DictData,self).show(compact=compact,indent=indent,firstIndent=firstIndent)} [t:{dateTxt}{delTxt} {lenTxt}]"
+
+        return result
+
+    def __repr__(self):
+        return self.showV(compact=True)
+
+    __str__ = __repr__
+
+
+
+    __setitem__=_checkDeletedUpdate(LoggedDict.__setitem__)
+    update=_checkDeletedUpdate(LoggedDict.update)
+    purge=_checkDeletedUpdate(LoggedDict.purge)
+    addExclusion=_checkDeletedUpdate(LoggedDict.addExclusion)
+    replace=_checkDeletedUpdate(LoggedDict.replace)
+
+    __getitem__=_checkDeletedRead(LoggedDict.__getitem__)
+    __len__=_checkDeletedRead(LoggedDict.__len__)
+    get=_checkDeletedRead(LoggedDict.get)
+    getValue=_checkDeletedRead(LoggedDict.getValue)
+    keys=_checkDeletedRead(LoggedDict.keys)
+    items=_checkDeletedRead(LoggedDict.items)
+    values=_checkDeletedRead(LoggedDict.values)
+    keysV=_checkDeletedRead(LoggedDict.keysV)
+    itemsV=_checkDeletedRead(LoggedDict.itemsV)
+    valuesV=_checkDeletedRead(LoggedDict.valuesV)
+
+    _asdict=_checkDeletedRead(LoggedDict._asdict)
+    diff=_checkDeletedRead(LoggedDict.diff)
+    compareWithOtherKeys=_checkDeletedRead(LoggedDict.compareWithOtherKeys)
+    show=_checkDeletedRead(LoggedDict.show)
+    #__repr__=_checkDeletedRead(LoggedDict.__repr__)
+    __ne__=_checkDeletedRead(LoggedDict.__ne__)
+    __eq__=_checkDeletedRead(LoggedDict.__eq__)
+
 
 class DictOfLoggedDict:
-    def __init__(self, exclusions: set = None):
-
+    def __init__(self, exclusions:Optional[Set[str]] = None):
         if exclusions is not None and not isinstance(exclusions, (set, list, tuple)):
-            raise TypeError(f"DictOfLoggedDict: expected set/list/tuple for exclusions: {exclusions}")
+            raise TypeError(f"DictOfLoggedDict: expected set/list/tuple for exclusions: '{exclusions}' ({type(exclusions)}")
 
-        self.current = dict()
-        self.exclusions = exclusions or set()
-        self.timestamp = gmtime()
+        self.current:Dict[str,DictData] = dict()
 
-    def __getitem__(self, item):
-        return self.current.__getitem__(item)
+        self.exclusions:Set[str] = set(exclusions) if exclusions else set()
+        self.timestamp:struct_time = gmtime()
 
-    def __setitem__(self, k, v):
-        currVal = self.current.get(k, LoggedDict(exclusions=self.exclusions))
-        changes = currVal.update(v)
+    def __getitem__(self, k):
+        if k not in self.current:
+            raise KeyError(f"Requested key '{k}' does not exists")
+        result=self.current.__getitem__(k)
+        if result.isDeleted():
+            raise KeyError(f"Attempting to get a deleted item '{k}'.You must undelete first")
+        return result
+
+    def __setitem__(self, k, v,timestamp:Optional[struct_time]=None):
+        currVal = self.current.get(k, DictData(exclusions=self.exclusions))
+        changes = currVal.replace(v,timestamp=timestamp)
 
         self.current[k] = currVal
         return changes
 
-    def get(self, key, default=None):
-        return self.current.get(key, default)
+    def get(self, key):
+        if key not in self.current:
+            raise KeyError(f"Unknown key '{key}'")
+        if self.current[key].isDeleted():
+            raise KeyError(f"Requested item is deleted '{key}'")
+        return self.current.get(key)._asdict()
 
-    def update(self, newValues, timestamp=None):
+    def getV(self, key):
+        if key not in self.current:
+            raise KeyError(f"Unknown key '{key}'")
+        return self.current.get(key)
+
+    def update(self, newValues, timestamp:Optional[struct_time]=None, replaceInner:bool=False):
         changeTime = timestamp or gmtime()
         result = []
 
-        if not isinstance(newValues, dict):
-            raise TypeError("LoggedDict.DictOfLoggedDict.update: expected dict")
+        if not isinstance(newValues, (dict,DictOfLoggedDict)):
+            raise TypeError(f"update: expected dict or DictOfLoggedDict, got '{type(newValues)}'")
 
         for k, v in newValues.items():
-            currVal = self.current.get(k, LoggedDict(exclusions=self.exclusions))
+            currVal = self.current.get(k, DictData(exclusions=self.exclusions))
 
-            r1 = currVal.update(v, timestamp=changeTime)
+            r1 = currVal.replace(v, timestamp=changeTime) if replaceInner else currVal.update(v, timestamp=changeTime)
 
             if r1:
                 self.current[k] = currVal
@@ -48,24 +173,29 @@ class DictOfLoggedDict:
 
         return any(result)
 
-    def purge(self, keys2delete, timestamp=None):
+    def purge(self, *kargs, timestamp:Optional[struct_time]=None):
         changeTime = timestamp or gmtime()
         result = []
+        keys2delete = set(chain(*kargs))
 
         for k in keys2delete:
             if k in self.exclusions:
                 continue
             if k in self.current:
-                r1 = self.current[k].clear(timestamp=changeTime)
+                r1 = self.current[k].delete(timestamp=changeTime)
                 result.append(r1)
 
         return any(result)
 
-    def addExclusion(self, *kargs):
-        self.exclusions.update(set(kargs))
+    def addExclusion(self, *kargs, timestamp:Optional[struct_time]=None)->bool:
+        keys2add = set(chain(*kargs))
+        changed = False
+        self.exclusions.update(keys2add)
 
-        for v in self.current.values():
-            v.addExclusion(set(kargs))  # TOTHINK: Qué hacer con los valores almacenados y que han quedado excluidos?
+        for v in self.values():
+            v.addExclusion(set(kargs), timestamp=timestamp)  # TOTHINK: Qué hacer con los valores almacenados y que han quedado excluidos?
+
+        return changed
 
     def removeExclusion(self, *kargs):
         self.exclusions.remove(set(kargs).intersection(self.exclusions))
@@ -73,9 +203,32 @@ class DictOfLoggedDict:
         for v in self.current.values():
             v.removeExclusion(set(kargs))
 
-    def extractKey(self, key, default=None):
-        result = {k: v.get(key, default=default) for k, v in self.current.items()}
+    def keys(self):
+        for k, v in self.current.items():
+            if not v.isDeleted():
+                yield k
 
+    def items(self):
+        for k, v in self.current.items():
+            if not v.isDeleted():
+                yield k, v._asdict()
+
+    def values(self):
+        for v in self.current.values():
+            if not v.isDeleted():
+                yield v._asdict()
+
+    def keysV(self):
+        return self.current.keys()
+
+    def itemsV(self):
+        return self.current.items()
+
+    def valuesV(self):
+        return self.current.values()
+
+    def _asdict(self):
+        result = {k:v for k,v in self.items()}
         return result
 
     def subkeys(self):
@@ -109,7 +262,7 @@ class DictOfLoggedDict:
         return result
 
     def __len__(self):
-        return len(self.current)
+        return len(list(self.keys()))
 
     def __repr__(self):
         auxResult = {k: self.current[k].__repr__() for k in sorted(self.current)}

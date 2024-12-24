@@ -183,37 +183,37 @@ class LoggedDict:
             result |= self.__setitem__(k, other.get(k), timestamp=timestamp)
         return result
 
-    def diff(self, other) -> LoggedDictDiff:
+    def diff(self, newValues) -> LoggedDictDiff:
         """
         Returns the differences between a loggedDict and another loggedDict or a dict
-        :param other: a loggedDict or a dict
+        :param newValues: a loggedDict or a dict
         :return: a Difference object
         """
-        if not isinstance(other, (dict, LoggedDict)):
-            raise TypeError(f"Parameter expected to be a dict or LoggedDict. Provided {type(other)}")
+        if not isinstance(newValues, (dict, LoggedDict)):
+            raise TypeError(f"Parameter expected to be a dict or LoggedDict. Provided {type(newValues)}")
 
         result = LoggedDictDiff()
 
-        missingKeys, newKeys, sharedKeys = self.compareWithOtherKeys(other)
+        missingKeys, newKeys, sharedKeys = self.compareWithOtherKeys(newValues)
 
         for k in sorted(newKeys):
             if k in self.exclusions:
                 continue
-            result.addKey(k, other.get(k))
+            result.addKey(k, newValues.get(k))
         for k in sorted(sharedKeys):
             currVal = self.get(k)
-            otherVal = other.get(k)
+            otherVal = newValues.get(k)
             result.change(k, currVal, otherVal)
         for k in sorted(missingKeys):
             result.removeKey(k, self.get(k))
 
         return result
 
-    def compareWithOtherKeys(self, other) -> Tuple[Set, Set, Set]:
-        if not isinstance(other, (dict, LoggedDict)):
-            raise TypeError(f"Parameter expected to be a dict or LoggedDict. Provided {type(other)}")
+    def compareWithOtherKeys(self, newValues) -> Tuple[Set, Set, Set]:
+        if not isinstance(newValues, (dict, LoggedDict)):
+            raise TypeError(f"Parameter expected to be a dict or LoggedDict. Provided {type(newValues)}")
 
-        otherKeys = set(other.keys()) if isinstance(other, LoggedDict) else set(other.keys())
+        otherKeys = set(newValues.keys()) if isinstance(newValues, LoggedDict) else set(newValues.keys())
         currentKeys = set(self.keys())
         sharedKeys = set(currentKeys).intersection(otherKeys)
         missingKeys = set(currentKeys).difference(otherKeys)
