@@ -91,7 +91,7 @@ class LoggedDict:
             return self.__getitem__(key)
         return default
 
-    def getValue(self, key, default=None):
+    def getV(self, key, default=None):
         return self.current.get(key, default)
 
     def update(self, newValues, timestamp=None):
@@ -223,7 +223,7 @@ class LoggedDict:
     def show(self, compact=True, indent: int = 0, firstIndent: Optional[int] = None):
         if firstIndent is None:
             firstIndent = indent
-        auxResult = {k: repr(self.getValue(k)) for k in sorted(self.keysV())}
+        auxResult = {k: repr(self.getV(k)) for k in sorted(self.keysV())}
         if len(auxResult) == 0:
             return "{}"
         if compact or len(auxResult) == 1:

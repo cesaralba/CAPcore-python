@@ -38,7 +38,7 @@ class TestLoggedDict(unittest.TestCase):
         self.assertEqual(v1, 4)
         self.assertEqual(len(d1), 1)
 
-        lv1 = d1.getValue('b')
+        lv1 = d1.getV('b')
         self.assertEqual(len(lv1), 2)
 
     def test_setget1(self):
@@ -75,7 +75,7 @@ class TestLoggedDict(unittest.TestCase):
         self.assertTrue(r2)
         self.assertEqual(d1['b'], 5)
         self.assertEqual(d1['c'], 6)
-        lv1 = d1.getValue('b')
+        lv1 = d1.getV('b')
         self.assertEqual(len(lv1), 2)
 
     def test_update2(self):
