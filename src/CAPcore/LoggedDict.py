@@ -60,6 +60,7 @@ class LoggedDictDiff:
 
     __str__ = __repr__
 
+
 class LoggedDict:
     def __init__(self, exclusions: Optional[Set] = None, timestamp=None):
 
@@ -67,7 +68,7 @@ class LoggedDict:
             raise TypeError(f"LoggedDict: expected set/list/tuple for exclusions: {exclusions}")
 
         self.current = dict()
-        self.exclusions:Set[str] = set(exclusions) if exclusions else set()
+        self.exclusions: Set[str] = set(exclusions) if exclusions else set()
         self.timestamp = timestamp or gmtime()
 
     def __getitem__(self, item):
@@ -112,7 +113,7 @@ class LoggedDict:
 
         return any(result)
 
-    def purge(self, *kargs, timestamp=None)->bool:
+    def purge(self, *kargs, timestamp=None) -> bool:
         changeTime = timestamp or gmtime()
         result = []
         keys2delete = set(chain(*kargs))
