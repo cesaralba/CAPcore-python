@@ -20,7 +20,6 @@ def _checkDeletedUpdate(func, canDiff=False):
         changes = f"{func.__name__} kargs={kargs} kwargs={kwargs}"
         if canDiff:
             purgedKWParams = {k: v for k, v in kwargs.items() if k not in {'timestamp'}}
-            print("CAP ", *kargs, **purgedKWParams)
             auxChanges = self.diff(*kargs, **purgedKWParams)
             changes = f"{auxChanges}"
 
@@ -141,10 +140,10 @@ class DictOfLoggedDict:
     def __getitem__(self, k):
         if k not in self.current:
             raise KeyError(f"Requested key '{k}' does not exists")
-        result = self.current.__getitem__(k)
-        if result.isDeleted():
+        auxResult = self.current[k]
+        if auxResult.isDeleted():
             raise KeyError(f"Attempting to get a deleted item '{k}'.You must undelete first")
-        return result
+        return auxResult._asdict()
 
     def __setitem__(self, k, v, timestamp: Optional[struct_time] = None):
         changeTime = timestamp or gmtime()
@@ -176,9 +175,9 @@ class DictOfLoggedDict:
                 raise KeyError(f"Unknown key '{key}'")
             else:
                 raise KeyError(f"Requested item is deleted '{key}'")
-        result = self.current.get(key)._asdict()
+        result = self.get(key)
 
-        changes = self[key].delete(timestamp=changeTime)
+        changes = self.getV(key).delete(timestamp=changeTime)
         if changes:
             self.timestamp = changeTime
 
@@ -222,16 +221,22 @@ class DictOfLoggedDict:
         changed = False
         self.exclusions.update(keys2add)
 
-        for v in self.values():
-            v.addExclusion(set(kargs), timestamp=timestamp)
+        for v in self.valuesV():
+            if v.isDeleted():
+                continue
+            changed |=  v.addExclusion(keys2add, timestamp=timestamp)
 
         return changed
 
     def removeExclusion(self, *kargs):
-        self.exclusions.remove(set(kargs).intersection(self.exclusions))
+        keys2remove = set(chain(*kargs))
 
-        for v in self.current.values():
-            v.removeExclusion(set(kargs))
+        self.exclusions.difference_update(keys2remove)
+
+        for v in self.valuesV():
+            if v.isDeleted():
+                continue
+            v.removeExclusion(keys2remove)
 
     def keys(self):
         for k, v in self.current.items():
@@ -262,12 +267,12 @@ class DictOfLoggedDict:
         return result
 
     def subkeys(self):
-        auxList = []
+        result = set()
 
-        for v in self.current.values():
-            auxList = auxList + list(v.keysV())
+        for v in self.values():
+            result.update(v.keys())
 
-        return set(auxList)
+        return result
 
     def diff(self, other):  #:(Dict[Any,(LoggedDict,dict)],LoggedDict)
         if not isinstance(other, (dict, DictOfLoggedDict)):

@@ -1,6 +1,6 @@
 from itertools import chain
-from time import gmtime
-from typing import Tuple, Set, Optional
+from time import gmtime, struct_time
+from typing import Tuple, Set, Optional, Dict
 
 from .LoggedValue import LoggedValue
 
@@ -67,7 +67,7 @@ class LoggedDict:
         if exclusions is not None and not isinstance(exclusions, (set, list, tuple)):
             raise TypeError(f"LoggedDict: expected set/list/tuple for exclusions: {exclusions}")
 
-        self.current = dict()
+        self.current:Dict[LoggedValue] = {}
         self.exclusions: Set[str] = set(exclusions) if exclusions else set()
         self.timestamp = timestamp or gmtime()
 
@@ -97,7 +97,7 @@ class LoggedDict:
 
     def update(self, newValues, timestamp=None):
         changeTime = timestamp or gmtime()
-        result = []
+        result = False
         newValIter = newValues
         if isinstance(newValues, dict):
             newValIter = newValues.items()
@@ -109,32 +109,26 @@ class LoggedDict:
             r1 = v1.set(v, changeTime)
             if r1:
                 self.current[k] = v1
-            result.append(r1)
 
-        return any(result)
+            result |= r1
+
+        return result
 
     def purge(self, *kargs, timestamp=None) -> bool:
         changeTime = timestamp or gmtime()
-        result = []
+        result = False
         keys2delete = set(chain(*kargs))
         for k in keys2delete:
-            if k in self.exclusions:
-                continue
             if k in self.current:
-                r1 = self.current[k].clear(timestamp=changeTime)
-                result.append(r1)
+                result |= self.current[k].clear(timestamp=changeTime)
 
-        return any(result)
+        return result
 
-    def addExclusion(self, *kargs) -> bool:
+    def addExclusion(self, *kargs, timestamp: Optional[struct_time] = None) -> bool:
         keys2add = set(chain(*kargs))
         changed = False
         self.exclusions.update(keys2add)
-        currKeys = self.exclusions.intersection(self.current.keys())
-        for k in currKeys:
-            if k in self.exclusions:
-                self.current.pop(k)
-                changed = True
+        changed |= self.purge(keys2add,timestamp=timestamp)
 
         return changed
 

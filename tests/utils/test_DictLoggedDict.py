@@ -59,7 +59,7 @@ class TestDictLoggedDict(unittest.TestCase):
         d1.update(newValues=di1)
         r1 = d1.purge('a')
         rd1 = d1._asdict()
-        v1 = d1['b']._asdict()
+        v1 = d1['b']
         self.assertTrue(r1)
         self.assertDictEqual(rd1, {'b': dAux1})
         with self.assertRaises(KeyError):
@@ -77,8 +77,8 @@ class TestDictLoggedDict(unittest.TestCase):
         d1.update(newValues=di1)
         d1.purge('a')
 
-        with self.assertRaises(KeyError):
-            d1['a'].update(dAux1)
+        with self.assertRaises(ValueError):
+            d1.getV('a').update(dAux1)
 
         with self.assertRaises(ValueError):
             d1.current['a'].update(dAux1)
@@ -204,7 +204,7 @@ class TestDictLoggedDict(unittest.TestCase):
         di1 = {'a': dAux1, 'b': dAux1}
 
         d1.update(newValues=di1)
-        r2 = d1['b'].restore()
+        r2 = d1.getV('b').restore()
         self.assertFalse(r2)
 
     def test_DDshowV1(self):
@@ -212,9 +212,8 @@ class TestDictLoggedDict(unittest.TestCase):
         time1 = struct_time((2024, 12, 13, 23, 4, 34, 4, 348, 0))
         time2 = struct_time((2024, 12, 13, 23, 4, 44, 4, 348, 0))
 
-        res1 = {
-            'a': "{'a1': 1 [t:2024-12-13 23:04:34+0000 l:1], 'a2': 'ce' [t:2024-12-13 23:04:34+0000 l:1]} ["
-                 "t:2024-12-13 23:04:44+0000 D l:3]",
+        res1 = {'a': "{'a1': 1 [t:2024-12-13 23:04:34+0000 l:1], 'a2': 'ce' [t:2024-12-13 23:04:34+0000 l:1]} ["
+                     "t:2024-12-13 23:04:44+0000 D l:3]",
             'b': "{'a1': 1 [t:2024-12-13 23:04:34+0000 l:1], 'a2': 'ce' [t:2024-12-13 23:04:34+0000 l:1]} ["
                  "t:2024-12-13 23:04:34+0000 l:2]"}
 
@@ -243,7 +242,7 @@ class TestDictLoggedDict(unittest.TestCase):
         d1['a'] = dAux1
         v1 = d1['a']
 
-        self.assertDictEqual(v1._asdict(), dAux1)
+        self.assertDictEqual(v1, dAux1)
 
     def test_get(self):
         d1 = DictOfLoggedDict()
@@ -288,3 +287,31 @@ class TestDictLoggedDict(unittest.TestCase):
 
         with self.assertRaises(KeyError):
             v3 = d1.pop('b')
+
+    def test_addExclusion(self):
+        d1 = DictOfLoggedDict()
+        dAux1 = {'a1': 1, 'a2': 'ce'}
+        di1={'a':dAux1,'b':dAux1, 'c':dAux1}
+        d1.update(di1)
+        d1.purge('c')
+
+        r1=d1.addExclusion({'a1'})
+        r2=d1.addExclusion({'a3'})
+        v1=d1['a']
+        self.assertTrue(r1)
+        self.assertFalse(r2)
+        self.assertDictEqual(v1,{'a2': 'ce'})
+
+    def test_removeExcls(self):
+        d1 = DictOfLoggedDict({'a3','a4'})
+        dAux1 = {'a1': 1, 'a2': 'ce'}
+        di1={'a':dAux1,'b':dAux1, 'c':dAux1}
+        d1.update(di1)
+        d1.purge('c')
+
+        d1.removeExclusion({'a3'})
+        lenExcls = [len(v.exclusions) for v in d1.valuesV()]
+        checkRemoved = [('a3' in v.exclusions) for v in d1.valuesV()]
+
+        self.assertListEqual(lenExcls,[1,1,2])
+        self.assertListEqual(checkRemoved,[False,False,True])
