@@ -214,8 +214,8 @@ class TestDictLoggedDict(unittest.TestCase):
 
         res1 = {'a': "{'a1': 1 [t:2024-12-13 23:04:34+0000 l:1], 'a2': 'ce' [t:2024-12-13 23:04:34+0000 l:1]} ["
                      "t:2024-12-13 23:04:44+0000 D l:3]",
-            'b': "{'a1': 1 [t:2024-12-13 23:04:34+0000 l:1], 'a2': 'ce' [t:2024-12-13 23:04:34+0000 l:1]} ["
-                 "t:2024-12-13 23:04:34+0000 l:2]"}
+                'b': "{'a1': 1 [t:2024-12-13 23:04:34+0000 l:1], 'a2': 'ce' [t:2024-12-13 23:04:34+0000 l:1]} ["
+                     "t:2024-12-13 23:04:34+0000 l:2]"}
 
         d1 = DictOfLoggedDict(timestamp=time0)
         dAux1 = {'a1': 1, 'a2': 'ce'}
@@ -291,21 +291,21 @@ class TestDictLoggedDict(unittest.TestCase):
     def test_addExclusion(self):
         d1 = DictOfLoggedDict()
         dAux1 = {'a1': 1, 'a2': 'ce'}
-        di1={'a':dAux1,'b':dAux1, 'c':dAux1}
+        di1 = {'a': dAux1, 'b': dAux1, 'c': dAux1}
         d1.update(di1)
         d1.purge('c')
 
-        r1=d1.addExclusion({'a1'})
-        r2=d1.addExclusion({'a3'})
-        v1=d1['a']
+        r1 = d1.addExclusion({'a1'})
+        r2 = d1.addExclusion({'a3'})
+        v1 = d1['a']
         self.assertTrue(r1)
         self.assertFalse(r2)
-        self.assertDictEqual(v1,{'a2': 'ce'})
+        self.assertDictEqual(v1, {'a2': 'ce'})
 
     def test_removeExcls(self):
-        d1 = DictOfLoggedDict({'a3','a4'})
+        d1 = DictOfLoggedDict({'a3', 'a4'})
         dAux1 = {'a1': 1, 'a2': 'ce'}
-        di1={'a':dAux1,'b':dAux1, 'c':dAux1}
+        di1 = {'a': dAux1, 'b': dAux1, 'c': dAux1}
         d1.update(di1)
         d1.purge('c')
 
@@ -313,5 +313,5 @@ class TestDictLoggedDict(unittest.TestCase):
         lenExcls = [len(v.exclusions) for v in d1.valuesV()]
         checkRemoved = [('a3' in v.exclusions) for v in d1.valuesV()]
 
-        self.assertListEqual(lenExcls,[1,1,2])
-        self.assertListEqual(checkRemoved,[False,False,True])
+        self.assertListEqual(lenExcls, [1, 1, 2])
+        self.assertListEqual(checkRemoved, [False, False, True])

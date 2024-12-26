@@ -67,7 +67,7 @@ class LoggedDict:
         if exclusions is not None and not isinstance(exclusions, (set, list, tuple)):
             raise TypeError(f"LoggedDict: expected set/list/tuple for exclusions: {exclusions}")
 
-        self.current:Dict[LoggedValue] = {}
+        self.current: Dict[LoggedValue] = {}
         self.exclusions: Set[str] = set(exclusions) if exclusions else set()
         self.timestamp = timestamp or gmtime()
 
@@ -128,7 +128,7 @@ class LoggedDict:
         keys2add = set(chain(*kargs))
         changed = False
         self.exclusions.update(keys2add)
-        changed |= self.purge(keys2add,timestamp=timestamp)
+        changed |= self.purge(keys2add, timestamp=timestamp)
 
         return changed
 
