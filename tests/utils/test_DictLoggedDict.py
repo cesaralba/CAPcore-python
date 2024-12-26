@@ -212,10 +212,10 @@ class TestDictLoggedDict(unittest.TestCase):
         time1 = struct_time((2024, 12, 13, 23, 4, 34, 4, 348, 0))
         time2 = struct_time((2024, 12, 13, 23, 4, 44, 4, 348, 0))
 
-        res1 = {'a': "{'a1': 1 [t:2024-12-13 23:04:34+0000 l:1], 'a2': 'ce' [t:2024-12-13 23:04:34+0000 l:1]} ["
-                     "t:2024-12-13 23:04:44+0000 D l:3]",
-                'b': "{'a1': 1 [t:2024-12-13 23:04:34+0000 l:1], 'a2': 'ce' [t:2024-12-13 23:04:34+0000 l:1]} ["
-                     "t:2024-12-13 23:04:34+0000 l:2]"}
+        res1 = {'a': "{'a1': 1 [t:2024-12-13 23:04:34+0000 l:1], 'a2': 'ce' [t:2024-12-13 23:04:34+0000 l:1]} ("
+                     "t:2024-12-13 23:04:44+0000 D l:3)",
+                'b': "{'a1': 1 [t:2024-12-13 23:04:34+0000 l:1], 'a2': 'ce' [t:2024-12-13 23:04:34+0000 l:1]} ("
+                     "t:2024-12-13 23:04:34+0000 l:2)"}
 
         d1 = DictOfLoggedDict(timestamp=time0)
         dAux1 = {'a1': 1, 'a2': 'ce'}
@@ -315,3 +315,163 @@ class TestDictLoggedDict(unittest.TestCase):
 
         self.assertListEqual(lenExcls, [1, 1, 2])
         self.assertListEqual(checkRemoved, [False, False, True])
+
+    def test_subKeys(self):
+        d1 = DictOfLoggedDict()
+        dAux1 = {'a1': 1, 'a2': 'ce'}
+        di1 = {'a': dAux1, 'b': dAux1, 'c': dAux1}
+        di2 = {'b': {'b1':2,'b2':3}}
+        di3 = { 'c': {'c1':2,'c2':3}}
+
+        d1.update(di1)
+        sk1=d1.subkeys()
+        d1.update(di2)
+        sk2=d1.subkeys()
+        d1.update(di3)
+        sk3=d1.subkeys()
+        d1.purge('b')
+        sk4=d1.subkeys()
+
+        self.assertSetEqual(sk1,{'a1','a2'})
+        self.assertSetEqual(sk2,{'a1','a2','b1','b2'})
+        self.assertSetEqual(sk3,{'a1','a2','b1','b2','c1','c2'})
+        self.assertSetEqual(sk4,{'a1','a2','c1','c2'})
+
+    def test_diff1(self):
+        d1 = DictOfLoggedDict()
+        dAux1 = {'a1': 1, 'a2': 'ce'}
+        di1 = {'a': dAux1, 'b': dAux1, 'c': dAux1}
+
+        d1.update(di1)
+
+        with self.assertRaises(TypeError):
+            d1.diff(25)
+
+    def test_diff2(self):
+        d1 = DictOfLoggedDict()
+        d2 = DictOfLoggedDict()
+
+        dAux1 = {'a1': 1, 'a2': 'ce'}
+        di1 = {'a': dAux1, 'b': dAux1, 'c': dAux1}
+
+        d1.update(di1)
+        d2.update(di1)
+
+        r1=d1.diff(d1)
+        r2=d1.diff(di1)
+        r3=d1.diff(d2)
+
+        self.assertFalse(r1)
+        self.assertFalse(r2)
+        self.assertFalse(r3)
+
+
+    def test_diff3(self):
+        d1 = DictOfLoggedDict()
+        d2 = DictOfLoggedDict()
+
+        dAux1 = {'a1': 1, 'a2': 'ce'}
+        di1 = {'a': dAux1, 'b': dAux1}
+        di2 = {'b': dAux1, 'c': dAux1}
+
+        d1.update(di1)
+        d2.update(di2)
+
+        r1=d1.diff(di2)
+        r2=d1.diff(d2)
+
+        self.assertTrue(r1)
+        self.assertTrue(r2)
+
+    def test_lenX(self):
+        d1 = DictOfLoggedDict()
+        dAux1 = {'a1': 1, 'a2': 'ce'}
+        di1 = {'a': dAux1, 'b': dAux1}
+
+        d1.update(di1)
+        r1 = len(d1)
+        rV1 = d1.lenV()
+
+        d1.purge('b')
+        r2 = len(d1)
+        rV2 = d1.lenV()
+
+        self.assertEqual(r1,2)
+        self.assertEqual(rV1,2)
+        self.assertEqual(r2,1)
+        self.assertEqual(rV2,2)
+
+    def test_show(self):
+        time0 = struct_time((2024, 12, 13, 23, 4, 24, 4, 348, 0))
+        time1 = struct_time((2024, 12, 13, 23, 4, 34, 4, 348, 0))
+        time2 = struct_time((2024, 12, 13, 23, 4, 44, 4, 348, 0))
+
+        dAux1 = {'a1': 1, 'a2': 'ce'}
+
+        expStr0C = "{} [t:2024-12-13 23:04:24+0000 l:0]"
+        expStr1C = "{'a':{'a1': 1 [t:2024-12-13 23:04:34+0000 l:1], 'a2': 'ce' [t:2024-12-13 23:04:34+0000 l:1]} (t:2024-12-13 23:04:34+0000 l:2)} [t:2024-12-13 23:04:34+0000 l:1]"
+        expStr2C = "{'a':{'a1': 1 [t:2024-12-13 23:04:34+0000 l:1], 'a2': 'ce' [t:2024-12-13 23:04:34+0000 l:1]} (t:2024-12-13 23:04:34+0000 l:2), 'b1':{'a1': 1 [t:2024-12-13 23:04:34+0000 l:1], 'a2': 'ce' [t:2024-12-13 23:04:34+0000 l:1]} (t:2024-12-13 23:04:34+0000 l:2)} [t:2024-12-13 23:04:34+0000 l:1]"
+        expStr3C = "{'a':{'a1': 1 [t:2024-12-13 23:04:34+0000 l:1], 'a2': 'ce' [t:2024-12-13 23:04:34+0000 l:1]} (t:2024-12-13 23:04:34+0000 l:2), 'b1':{'a1': 1 [t:2024-12-13 23:04:34+0000 l:1], 'a2': 'ce' [t:2024-12-13 23:04:34+0000 l:1]} (t:2024-12-13 23:04:34+0000 l:2), 'c12':{'a1': 1 [t:2024-12-13 23:04:34+0000 l:1], 'a2': 'ce' [t:2024-12-13 23:04:34+0000 l:1]} (t:2024-12-13 23:04:34+0000 l:2)} [t:2024-12-13 23:04:34+0000 l:1]"
+        expStr4C = "{'a':{'a1': 1 [t:2024-12-13 23:04:34+0000 l:1], 'a2': 'ce' [t:2024-12-13 23:04:34+0000 l:1]} (t:2024-12-13 23:04:34+0000 l:2), 'b1':{'a1': 1 [t:2024-12-13 23:04:34+0000 l:1], 'a2': 'ce' [t:2024-12-13 23:04:34+0000 l:1]} (t:2024-12-13 23:04:34+0000 l:2), 'c12':{'a1': 1 [t:2024-12-13 23:04:34+0000 l:1], 'a2': 'ce' [t:2024-12-13 23:04:34+0000 l:1]} (t:2024-12-13 23:04:44+0000 D l:3)} [t:2024-12-13 23:04:44+0000 l:2]"
+
+        expStr1 = """{ 'a': { 'a1': 1 [t:2024-12-13 23:04:34+0000 l:1],
+         'a2': 'ce' [t:2024-12-13 23:04:34+0000 l:1]
+       } (t:2024-12-13 23:04:34+0000 l:2)
+} [t:2024-12-13 23:04:34+0000 l:1]"""
+        expStr2 = """{ 'a':  { 'a1': 1 [t:2024-12-13 23:04:34+0000 l:1],
+          'a2': 'ce' [t:2024-12-13 23:04:34+0000 l:1]
+        } (t:2024-12-13 23:04:34+0000 l:2),
+  'b1': { 'a1': 1 [t:2024-12-13 23:04:34+0000 l:1],
+          'a2': 'ce' [t:2024-12-13 23:04:34+0000 l:1]
+        } (t:2024-12-13 23:04:34+0000 l:2)
+} [t:2024-12-13 23:04:34+0000 l:1]"""
+        expStr4 = """{ 'a':   { 'a1': 1 [t:2024-12-13 23:04:34+0000 l:1],
+           'a2': 'ce' [t:2024-12-13 23:04:34+0000 l:1]
+         } (t:2024-12-13 23:04:34+0000 l:2),
+  'b1':  { 'a1': 1 [t:2024-12-13 23:04:34+0000 l:1],
+           'a2': 'ce' [t:2024-12-13 23:04:34+0000 l:1]
+         } (t:2024-12-13 23:04:34+0000 l:2),
+  'c12': { 'a1': 1 [t:2024-12-13 23:04:34+0000 l:1],
+           'a2': 'ce' [t:2024-12-13 23:04:34+0000 l:1]
+         } (t:2024-12-13 23:04:44+0000 D l:3)
+} [t:2024-12-13 23:04:44+0000 l:2]"""
+
+        d0 = DictOfLoggedDict(timestamp=time0)
+        d1 = DictOfLoggedDict(timestamp=time0)
+        d2 = DictOfLoggedDict(timestamp=time0)
+        d3 = DictOfLoggedDict(timestamp=time0)
+        d4 = DictOfLoggedDict(timestamp=time0)
+
+        d1.update({'a':dAux1},timestamp=time1)
+        d2.update({'a':dAux1,'b1':dAux1},timestamp=time1)
+        d3.update({'a':dAux1,'b1':dAux1,'c12':dAux1},timestamp=time1)
+        d4.update({'a':dAux1,'b1':dAux1,'c12':dAux1},timestamp=time1)
+        d4.purge({'c12'},timestamp=time2)
+
+        r0C = d0.show(compact=True)
+        r1C = d1.show(compact=True)
+        r2C = d2.show(compact=True)
+        r3C = d3.show(compact=True)
+        r4C = d4.show(compact=True)
+
+        r1 = d1.show(compact=False)
+        r2 = d2.show(compact=False)
+        r4 = d4.show(compact=False)
+
+        self.maxDiff = None
+        self.assertEqual(r0C,expStr0C)
+        self.assertEqual(r1C,expStr1C)
+        self.assertEqual(r2C,expStr2C)
+        self.assertEqual(r3C,expStr3C)
+        self.assertEqual(r4C,expStr4C)
+
+        print(r1)
+        print(expStr1)
+        print(r2)
+        print(expStr2)
+        print(r4)
+        print(expStr4)
+
+        self.assertEqual(r1,expStr1)
+        self.assertEqual(r2,expStr2)
+        self.assertEqual(r4,expStr4)

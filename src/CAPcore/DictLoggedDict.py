@@ -1,7 +1,7 @@
 from functools import wraps
 from itertools import chain
 from time import gmtime, struct_time, strftime
-from typing import Optional, Set, List, Dict
+from typing import Optional, Set, List, Dict, Tuple
 
 from .LoggedDict import LoggedDict
 from .LoggedValue import DATEFORMAT
@@ -23,7 +23,6 @@ def _checkDeletedUpdate(func, canDiff=False):
             auxChanges = self.diff(*kargs, **purgedKWParams)
             changes = f"{auxChanges}"
 
-        print(f"_checkDeletedUpdate {func.__name__} {kargs} {kwargs}")
         result = func(self, *kargs, **kwargs)
 
         if result:
@@ -37,8 +36,6 @@ def _checkDeletedUpdate(func, canDiff=False):
 def _checkDeletedRead(func):
     @wraps(func)
     def wrapper(self, *kargs, **kwargs):
-        print(f"_checkDeletedRead {func.__name__} {kargs} {kwargs}")
-
         if self.deleted:
             raise ValueError("Attempting to read a deleted record")
         result = func(self, *kargs, **kwargs)
@@ -89,8 +86,7 @@ class DictData(LoggedDict):
         dateTxt = strftime(DATEFORMAT, self.last_updated)
         lenTxt = f"l"":"f"{len(self.history)}"
 
-        result = (f"{super(DictData, self).show(compact=compact, indent=indent, firstIndent=firstIndent)} [t:"
-                  f"{dateTxt}{delTxt} {lenTxt}]")
+        result = (f"{super(DictData, self).show(compact=compact, indent=indent, firstIndent=firstIndent)}" + f" (t:{dateTxt}{delTxt} {lenTxt})")
 
         return result
 
@@ -136,6 +132,10 @@ class DictOfLoggedDict:
 
         self.exclusions: Set[str] = set(exclusions) if exclusions else set()
         self.timestamp: struct_time = changeTime
+        self.numChanges:int = 0
+        self.history:List[Tuple[struct_time,str]] = []
+
+        self.addHistory("Created",changeTime)
 
     def __getitem__(self, k):
         if k not in self.current:
@@ -151,8 +151,15 @@ class DictOfLoggedDict:
         changes = currVal.replace(v, timestamp=changeTime)
 
         self.current[k] = currVal
-        self.timestamp = changeTime
+        if changes:
+            self.timestamp = changeTime
+            self.numChanges += 1
+            self.addHistory(f"Set '{k}':{currVal}")
         return changes
+
+    def addHistory(self, data:str, timestamp: Optional[struct_time] = None):
+        dateField = timestamp or gmtime()
+        self.history.append((dateField, data))
 
     def get(self, key):
         if key not in self.current:
@@ -202,7 +209,10 @@ class DictOfLoggedDict:
                 self.current[k] = currVal
 
             result |= r1
-
+        if result:
+            self.timestamp=changeTime
+            self.numChanges += 1
+            self.addHistory(f"Update {newValues}",timestamp=timestamp)
         return result
 
     def purge(self, *kargs, timestamp: Optional[struct_time] = None):
@@ -213,6 +223,12 @@ class DictOfLoggedDict:
         for k in keys2delete:
             if k in self.current:
                 result |= self.current[k].delete(timestamp=changeTime)
+
+        if result:
+            keysStr = ",".join(map(lambda x:f"'{x}'",keys2delete))
+            self.timestamp=changeTime
+            self.numChanges += 1
+            self.addHistory(f"Purged {keysStr}",timestamp=timestamp)
 
         return result
 
@@ -288,29 +304,60 @@ class DictOfLoggedDict:
         for k in sorted(newKeys):
             result.addKey(k, other.get(k))
         for k in sorted(sharedKeys):
-            currVal = self.get(k)
-            otherVal = other.get(k)
+            currVal = self.getV(k)
+            otherVal = other.get(k) if isinstance(other,dict) else other.getV(k)
             result.change(k, currVal, otherVal)
         for k in sorted(missingKeys):
-            result.removeKey(k, self.get(k))
+            result.removeKey(k, self.getV(k))
 
         return result
 
     def __len__(self):
-        return len(list(self.keys()))
+        return sum(1 for _ in self.keys())
+
+    def lenV(self):
+        return len(self.current)
+
+
+    def show(self,compact:bool=False, indent: int = 0, firstIndent: Optional[int] = None):
+        if firstIndent is None:
+            firstIndent = indent
+
+        metadataStr = self.buildMetadataStr()
+        claves = sorted(self.keysV())
+
+        if compact:
+            indent = 0
+            firstIndent = 0
+
+
+        if self.lenV() == 0:
+            return f"{self.current} {metadataStr}"
+        if compact:
+            result="{" + ", ".join(map(lambda k: f"'{k}':{self.current[k].showV(compact,indent,firstIndent)}",claves)) +"}"+ f" {metadataStr}"
+        else:
+            longestK = 0 if compact else max([len(k) for k in claves])
+            linesList = []
+            flag=False
+            for k in claves:
+                extraIndent = " " *(2 if flag else 0)
+                auxFirst = (longestK - len(k))
+                auxIndent = longestK +2 + 4
+                newLine =extraIndent + f"'{k}': " + self.current[k].showV(compact=compact,indent=auxIndent,firstIndent=auxFirst)
+                linesList.append(newLine             )
+                flag=True
+            result = "{ " + ",\n".join(linesList) + "\n} " + metadataStr
+        return result
+
+    def buildMetadataStr(self):
+        dateTxt = strftime(DATEFORMAT, self.timestamp)
+        lenTxt = f"l"":"f"{self.numChanges}"
+        metadataStr = f"[t:{dateTxt} {lenTxt}]"
+        return metadataStr
 
     def __repr__(self):
-        auxResult = {k: self.current[k].__repr__() for k in sorted(self.current)}
+        return self.show(compact=True)
 
-        if len(auxResult) == 1:
-            k, v = auxResult.pop()
-            result = dumpLoggedDict(k, v)
-        else:
-            claves = sorted(auxResult.keys())
-            result = "{" + " " * (INDENTSEPR - 1) + dumpLoggedDict(claves[0], auxResult[claves[0]]) + SEPRPR + " "
-            result = result + (SEPRPR + " ").join([dumpLoggedDict(k, auxResult[k]) for k in claves[1:]])
-            result = result + "\n}"  # TODO: WTF los espacios adicionales tras la coma
-        return result
 
     def __ne__(self, other):
         return self.diff(other)
@@ -359,7 +406,7 @@ class DictOfLoggedDictDiff:
         return self.show(compact=True)
 
 
-def dumpLoggedDict(k, v, indent=2):
+def dumpLoggedDict(k, v, indent=0):
     AUXSEP = "\n" + " " * (indent + 1)
     vSplit = v.split('\n')
 
