@@ -371,8 +371,10 @@ class TestDictLoggedDict(unittest.TestCase):
         d2 = DictOfLoggedDict()
 
         dAux1 = {'a1': 1, 'a2': 'ce'}
-        di1 = {'a': dAux1, 'b': dAux1}
-        di2 = {'b': dAux1, 'c': dAux1}
+        dAux2 = {'a1': 2}
+
+        di1 = {'a': dAux1, 'b': dAux1, 'c':dAux1}
+        di2 = {'b': dAux1, 'c': dAux2, 'd':dAux1}
 
         d1.update(di1)
         d2.update(di2)
@@ -382,6 +384,10 @@ class TestDictLoggedDict(unittest.TestCase):
 
         self.assertTrue(r1)
         self.assertTrue(r2)
+
+        self.assertNotEqual(d1,d2)
+        self.assertNotEqual(d1,di2)
+
 
     def test_lenX(self):
         d1 = DictOfLoggedDict()
@@ -475,3 +481,56 @@ class TestDictLoggedDict(unittest.TestCase):
         self.assertEqual(r1,expStr1)
         self.assertEqual(r2,expStr2)
         self.assertEqual(r4,expStr4)
+
+        r0e = repr(d0)
+        r1e = repr(d1)
+        r4e = repr(d4)
+
+        self.assertEqual(r0e,expStr0C)
+        self.assertEqual(r1e,expStr1C)
+        self.assertEqual(r4e,expStr4C)
+
+    def test_diffShow(self):
+        time0 = struct_time((2024, 12, 13, 23, 4, 24, 4, 348, 0))
+        time1 = struct_time((2024, 12, 13, 23, 4, 34, 4, 348, 0))
+
+        expRes0C =""
+        expRes1C =" 'a': D {'a1': 1 [t:2024-12-13 23:04:34+0000 l:1], 'a2': 'ce' [t:2024-12-13 23:04:34+0000 l:1]} (t:2024-12-13 23:04:34+0000 l:2),  'c': C 'a1': C '1' -> '2', 'a2': D 'ce',  'd': A {'a1': 1, 'a2': 'ce'}"
+        expRes0 =""
+        expRes1 =""" 'a': D {'a1': 1 [t:2024-12-13 23:04:34+0000 l:1], 'a2': 'ce' [t:2024-12-13 23:04:34+0000 l:1]} (t:2024-12-13 23:04:34+0000 l:2)
+ 'c': C 'a1': C '1' -> '2', 'a2': D 'ce'
+ 'd': A {'a1': 1, 'a2': 'ce'}"""
+
+        d1 = DictOfLoggedDict(timestamp=time0)
+
+        dAux1 = {'a1': 1, 'a2': 'ce'}
+        dAux2 = {'a1': 2}
+
+        di1 = {'a': dAux1, 'b': dAux1, 'c':dAux1}
+        di2 = {'b': dAux1, 'c': dAux2, 'd':dAux1}
+
+        d1.update(di1,timestamp=time1)
+
+        rAux0=d1.diff(di1)
+        rAux1=d1.diff(di2)
+
+        r0C=rAux0.show(compact=True)
+        r0=rAux0.show(compact=False)
+        r1C=rAux1.show(compact=True)
+        r1=rAux1.show(compact=False)
+        r0e=repr(rAux0)
+        r1e=repr(rAux1)
+
+        print(expRes1C)
+        print(r1C)
+        print(expRes1)
+        print(r1)
+
+        self.assertEqual(r0C,expRes0C)
+        self.assertEqual(r0,expRes0)
+
+        self.assertEqual(r1C,expRes1C)
+        self.assertEqual(r1,expRes1)
+
+        self.assertEqual(r0e,expRes0C)
+        self.assertEqual(r1e,expRes1C)

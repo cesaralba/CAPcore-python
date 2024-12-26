@@ -6,10 +6,6 @@ from typing import Optional, Set, List, Dict, Tuple
 from .LoggedDict import LoggedDict
 from .LoggedValue import DATEFORMAT
 
-INDENTSEPR = 2
-SEPRPR = ",\n" + " " * INDENTSEPR
-
-
 def _checkDeletedUpdate(func, canDiff=False):
     @wraps(func)
     def wrapper(self, *kargs, **kwargs):
@@ -391,9 +387,9 @@ class DictOfLoggedDictDiff:
         if self.changeCount == 0:
             return ""
         result = []
-        result.extend([(k, f"{k}: A '{v}'") for k, v in self.added.items()])
-        result.extend([(k, f"{k}: D '{v}'") for k, v in self.removed.items()])
-        result.extend([(k, f"{k}: C '{v}'") for k, v in self.changed.items()])
+        result.extend([(k, f"'{k}': A {v}") for k, v in self.added.items()])
+        result.extend([(k, f"'{k}': D {v}") for k, v in self.removed.items()])
+        result.extend([(k, f"'{k}': C {v}") for k, v in self.changed.items()])
 
         auxSep = f"{sepCompact} " if compact else '\n'
         auxIndent = 0 if compact else indent
@@ -404,17 +400,3 @@ class DictOfLoggedDictDiff:
 
     def __repr__(self):
         return self.show(compact=True)
-
-
-def dumpLoggedDict(k, v, indent=0):
-    AUXSEP = "\n" + " " * (indent + 1)
-    vSplit = v.split('\n')
-
-    if len(vSplit) == 1:
-        result = (" " * indent) + f"{repr(k)}: {v}"
-    else:
-        result = (" " * (indent - 2)) + f"{repr(k)}: {vSplit[0]}" + AUXSEP
-        result = result + AUXSEP.join(vSplit[1:])
-        result = result + " " * (indent + 1)
-
-    return result
