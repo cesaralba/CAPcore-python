@@ -6,6 +6,7 @@ from typing import Optional, Set, List, Dict, Tuple
 from .LoggedDict import LoggedDict
 from .LoggedValue import DATEFORMAT
 
+
 def _checkDeletedUpdate(func, canDiff=False):
     @wraps(func)
     def wrapper(self, *kargs, **kwargs):
@@ -82,7 +83,10 @@ class DictData(LoggedDict):
         dateTxt = strftime(DATEFORMAT, self.last_updated)
         lenTxt = f"l"":"f"{len(self.history)}"
 
-        result = (f"{super(DictData, self).show(compact=compact, indent=indent, firstIndent=firstIndent)}" + f" (t:{dateTxt}{delTxt} {lenTxt})")
+        result = (
+                    f"{super(DictData, self).show(compact=compact, indent=indent, firstIndent=firstIndent)}" + f" ("
+                                                                                                               f"t:{
+                                                                                                               dateTxt}{delTxt} {lenTxt})")
 
         return result
 
@@ -128,10 +132,10 @@ class DictOfLoggedDict:
 
         self.exclusions: Set[str] = set(exclusions) if exclusions else set()
         self.timestamp: struct_time = changeTime
-        self.numChanges:int = 0
-        self.history:List[Tuple[struct_time,str]] = []
+        self.numChanges: int = 0
+        self.history: List[Tuple[struct_time, str]] = []
 
-        self.addHistory("Created",changeTime)
+        self.addHistory("Created", changeTime)
 
     def __getitem__(self, k):
         if k not in self.current:
@@ -153,7 +157,7 @@ class DictOfLoggedDict:
             self.addHistory(f"Set '{k}':{currVal}")
         return changes
 
-    def addHistory(self, data:str, timestamp: Optional[struct_time] = None):
+    def addHistory(self, data: str, timestamp: Optional[struct_time] = None):
         dateField = timestamp or gmtime()
         self.history.append((dateField, data))
 
@@ -206,9 +210,9 @@ class DictOfLoggedDict:
 
             result |= r1
         if result:
-            self.timestamp=changeTime
+            self.timestamp = changeTime
             self.numChanges += 1
-            self.addHistory(f"Update {newValues}",timestamp=timestamp)
+            self.addHistory(f"Update {newValues}", timestamp=timestamp)
         return result
 
     def purge(self, *kargs, timestamp: Optional[struct_time] = None):
@@ -221,10 +225,10 @@ class DictOfLoggedDict:
                 result |= self.current[k].delete(timestamp=changeTime)
 
         if result:
-            keysStr = ",".join(map(lambda x:f"'{x}'",keys2delete))
-            self.timestamp=changeTime
+            keysStr = ",".join(map(lambda x: f"'{x}'", keys2delete))
+            self.timestamp = changeTime
             self.numChanges += 1
-            self.addHistory(f"Purged {keysStr}",timestamp=timestamp)
+            self.addHistory(f"Purged {keysStr}", timestamp=timestamp)
 
         return result
 
@@ -236,7 +240,7 @@ class DictOfLoggedDict:
         for v in self.valuesV():
             if v.isDeleted():
                 continue
-            changed |=  v.addExclusion(keys2add, timestamp=timestamp)
+            changed |= v.addExclusion(keys2add, timestamp=timestamp)
 
         return changed
 
@@ -301,7 +305,7 @@ class DictOfLoggedDict:
             result.addKey(k, other.get(k))
         for k in sorted(sharedKeys):
             currVal = self.getV(k)
-            otherVal = other.get(k) if isinstance(other,dict) else other.getV(k)
+            otherVal = other.get(k) if isinstance(other, dict) else other.getV(k)
             result.change(k, currVal, otherVal)
         for k in sorted(missingKeys):
             result.removeKey(k, self.getV(k))
@@ -314,8 +318,7 @@ class DictOfLoggedDict:
     def lenV(self):
         return len(self.current)
 
-
-    def show(self,compact:bool=False, indent: int = 0, firstIndent: Optional[int] = None):
+    def show(self, compact: bool = False, indent: int = 0, firstIndent: Optional[int] = None):
         if firstIndent is None:
             firstIndent = indent
 
@@ -326,22 +329,23 @@ class DictOfLoggedDict:
             indent = 0
             firstIndent = 0
 
-
         if self.lenV() == 0:
             return f"{self.current} {metadataStr}"
         if compact:
-            result="{" + ", ".join(map(lambda k: f"'{k}':{self.current[k].showV(compact,indent,firstIndent)}",claves)) +"}"+ f" {metadataStr}"
+            result = "{" + ", ".join(map(lambda k: f"'{k}':{self.current[k].showV(compact, indent, firstIndent)}",
+                                         claves)) + "}" + f" {metadataStr}"
         else:
             longestK = 0 if compact else max([len(k) for k in claves])
             linesList = []
-            flag=False
+            flag = False
             for k in claves:
-                extraIndent = " " *(2 if flag else 0)
+                extraIndent = " " * (2 if flag else 0)
                 auxFirst = (longestK - len(k))
-                auxIndent = longestK +2 + 4
-                newLine =extraIndent + f"'{k}': " + self.current[k].showV(compact=compact,indent=auxIndent,firstIndent=auxFirst)
-                linesList.append(newLine             )
-                flag=True
+                auxIndent = longestK + 2 + 4
+                newLine = extraIndent + f"'{k}': " + self.current[k].showV(compact=compact, indent=auxIndent,
+                                                                           firstIndent=auxFirst)
+                linesList.append(newLine)
+                flag = True
             result = "{ " + ",\n".join(linesList) + "\n} " + metadataStr
         return result
 
@@ -353,7 +357,6 @@ class DictOfLoggedDict:
 
     def __repr__(self):
         return self.show(compact=True)
-
 
     def __ne__(self, other):
         return self.diff(other)

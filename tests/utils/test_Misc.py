@@ -18,18 +18,15 @@ class TestRemoveSuffix(unittest.TestCase):
 
         self.assertRaisesRegex(TypeError, r"^removeSuffix: one or both parameters are not a str.*")
 
-    def test_noSuffix(self):
+    def test_remove_Suffix_noSuffix(self):
         d1 = removeSuffix('a123', '4')
         self.assertEqual(d1, 'a123')
 
-    def test_happyPath1(self):
         d1 = removeSuffix('a123', '3')
         self.assertEqual(d1, 'a12')
 
-    def test_happyPath2(self):
         d1 = removeSuffix('a123', '23')
         self.assertEqual(d1, 'a1')
 
-    def test_happyPath3(self):
         d1 = removeSuffix('a1233', '3')
         self.assertEqual(d1, 'a123')
