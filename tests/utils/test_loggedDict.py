@@ -206,7 +206,7 @@ class TestLoggedDict(unittest.TestCase):
         kV1 = list(d1.keysV())
         rd1 = d1._asdict()
         rd2 = dict(d1.itemsV())
-        print(rd2)
+
         self.assertTrue(r1)
         self.assertDictEqual(rd1, di2)
         self.assertEqual(len(k1), 3)
@@ -270,26 +270,26 @@ class TestLoggedDict(unittest.TestCase):
         di1 = {'a': 1, 'b': 2, 'c': 3}
         di2 = {'b': 2, 'c': 4, 'd': 5}
 
-        exp11 = SetDiff(shared={'a','b', 'c'})
-        exp12 = SetDiff(missing={'a'},shared={'b', 'c'},new={'d'})
+        exp11 = SetDiff(shared={'a', 'b', 'c'})
+        exp12 = SetDiff(missing={'a'}, shared={'b', 'c'}, new={'d'})
 
         d1 = LoggedDict()
         d1.update(di1)
         d2 = LoggedDict()
         d2.update(di2)
 
-        r1D1=d1.compareWithOtherKeys(d1)
-        r1d1=d1.compareWithOtherKeys(di1)
-        r1D2=d1.compareWithOtherKeys(d2)
-        r1d2=d1.compareWithOtherKeys(di2)
+        r1D1 = d1.compareWithOtherKeys(d1)
+        r1d1 = d1.compareWithOtherKeys(di1)
+        r1D2 = d1.compareWithOtherKeys(d2)
+        r1d2 = d1.compareWithOtherKeys(di2)
 
         with self.assertRaises(TypeError):
             d1.compareWithOtherKeys(5)
 
-        self.assertEqual(r1D1,exp11)
-        self.assertEqual(r1d1,exp11 )
-        self.assertEqual(r1D2,exp12)
-        self.assertEqual(r1d2,exp12 )
+        self.assertEqual(r1D1, exp11)
+        self.assertEqual(r1d1, exp11)
+        self.assertEqual(r1D2, exp12)
+        self.assertEqual(r1d2, exp12)
 
     def test_compare1(self):
         di1 = {'a': 1, 'b': 2, 'c': 3}

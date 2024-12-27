@@ -94,7 +94,6 @@ class TestDictLoggedDict(unittest.TestCase):
         k1 = set(d1.keys())
         i1 = dict(d1.items())
         v1 = list(d1.values())
-        print(v1)
 
         self.assertSetEqual(k1, {'a', 'b'})
         self.assertDictEqual(i1, di1)
@@ -111,7 +110,6 @@ class TestDictLoggedDict(unittest.TestCase):
         k1 = set(d1.keys())
         i1 = dict(d1.items())
         v1 = list(d1.values())
-        print(v1)
 
         self.assertSetEqual(k1, {'b'})
         self.assertDictEqual(i1, {'b': dAux1})
@@ -482,13 +480,6 @@ class TestDictLoggedDict(unittest.TestCase):
         self.assertEqual(r3C, expStr3C)
         self.assertEqual(r4C, expStr4C)
 
-        print(r1)
-        print(expStr1)
-        print(r2)
-        print(expStr2)
-        print(r4)
-        print(expStr4)
-
         self.assertEqual(r1, expStr1)
         self.assertEqual(r2, expStr2)
         self.assertEqual(r4, expStr4)
@@ -533,11 +524,6 @@ class TestDictLoggedDict(unittest.TestCase):
         r1 = rAux1.show(compact=False)
         r0e = repr(rAux0)
         r1e = repr(rAux1)
-
-        print(expRes1C)
-        print(r1C)
-        print(expRes1)
-        print(r1)
 
         self.assertEqual(r0C, expRes0C)
         self.assertEqual(r0, expRes0)
