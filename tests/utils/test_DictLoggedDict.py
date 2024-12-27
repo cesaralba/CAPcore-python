@@ -501,9 +501,9 @@ class TestDictLoggedDict(unittest.TestCase):
                     "t:2024-12-13 23:04:34+0000 l:2),  'c': C 'a1': C '1' -> '2', 'a2': D 'ce',  'd': A {'a1': 1, "
                     "'a2': 'ce'}")
         expRes0 = ""
-        expRes1 = (
-            " 'a': D {'a1': 1 [t:2024-12-13 23:04:34+0000 l:1], 'a2': 'ce' [t:2024-12-13 23:04:34+0000 l:1]} ("
-            "t:2024-12-13 23:04:34+0000 l:2)\n 'c': C 'a1': C '1' -> '2', 'a2': D 'ce'\n 'd': A {'a1': 1, 'a2': 'ce'}")
+        expRes1 = (" 'a': D {'a1': 1 [t:2024-12-13 23:04:34+0000 l:1], 'a2': 'ce' [t:2024-12-13 23:04:34+0000 l:1]} ("
+                   "t:2024-12-13 23:04:34+0000 l:2)\n 'c': C 'a1': C '1' -> '2', 'a2': D 'ce'\n 'd': A {'a1': 1, "
+                   "'a2': 'ce'}")
 
         d1 = DictOfLoggedDict(timestamp=time0)
 
@@ -535,12 +535,12 @@ class TestDictLoggedDict(unittest.TestCase):
         self.assertEqual(r1e, expRes1C)
 
     def test_compareKeys1(self):
-        dAux1={'ax': 1, 'bx': 2}
+        dAux1 = {'ax': 1, 'bx': 2}
         di1 = {'a': dAux1, 'b': dAux1, 'c': dAux1}
         di2 = {'b': dAux1, 'c': dAux1, 'd': dAux1}
 
-        res11=SetDiff(missing=set(),shared={'a','b','c'},new=set())
-        res12=SetDiff(missing={'a'},shared={'b','c'},new={'d'})
+        res11 = SetDiff(missing=set(), shared={'a', 'b', 'c'}, new=set())
+        res12 = SetDiff(missing={'a'}, shared={'b', 'c'}, new={'d'})
         d1 = DictOfLoggedDict()
         d1.update(di1)
         d2 = DictOfLoggedDict()
@@ -554,14 +554,14 @@ class TestDictLoggedDict(unittest.TestCase):
         with self.assertRaises(TypeError):
             d1.compareWithOtherKeys(25)
 
-        self.assertEqual(compKeysD1D1,res11)
-        self.assertEqual(compKeysD1d1,res11)
-        self.assertEqual(compKeysD1D2,res12)
-        self.assertEqual(compKeysD1d2,res12)
+        self.assertEqual(compKeysD1D1, res11)
+        self.assertEqual(compKeysD1d1, res11)
+        self.assertEqual(compKeysD1D2, res12)
+        self.assertEqual(compKeysD1d2, res12)
 
     def test_replace(self):
-        dAux1={'ax': 1, 'bx': 2}
-        dAux2={'ax': 2, 'bx': 3}
+        dAux1 = {'ax': 1, 'bx': 2}
+        dAux2 = {'ax': 2, 'bx': 3}
 
         di1 = {'a': dAux1, 'b': dAux1, 'c': dAux1}
         di2 = {'b': dAux1, 'c': dAux2, 'd': dAux1}
@@ -583,10 +583,10 @@ class TestDictLoggedDict(unittest.TestCase):
         d2 = DictOfLoggedDict()
         d2.update(di2)
 
-        r1D1=d1D1.replace(d1)
-        r1d1=d1d1.replace(di1)
-        r1D2=d1D2.replace(d2)
-        r1d2=d1d2.replace(di2)
+        r1D1 = d1D1.replace(d1)
+        r1d1 = d1d1.replace(di1)
+        r1D2 = d1D2.replace(d2)
+        r1d2 = d1d2.replace(di2)
 
         with self.assertRaises(TypeError):
             d10.replace(25)
@@ -598,5 +598,5 @@ class TestDictLoggedDict(unittest.TestCase):
         self.assertTrue(r1D2)
         self.assertTrue(r1d2)
 
-        self.assertEqual(d1D2._asdict(),di2)
-        self.assertEqual(d1d2._asdict(),di2)
+        self.assertEqual(d1D2._asdict(), di2)
+        self.assertEqual(d1d2._asdict(), di2)

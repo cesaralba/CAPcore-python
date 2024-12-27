@@ -124,14 +124,7 @@ def composeURL(url, argsToAdd=None, argsToRemove=None):
     return result
 
 
-def mergeURL(base, link):
-    """ Wrapper for urllib.parse.urljoin
-    """
-
-    result = urljoin(base, link)
-
-    return result
-
+mergeURL = urljoin
 
 def createBrowser(config=Namespace()):
     browser = StatefulBrowser(soup_config={'features': "html.parser"}, raise_on_404=True, user_agent="Cosecha", )
