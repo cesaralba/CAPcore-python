@@ -233,6 +233,32 @@ class DictOfLoggedDict:
 
         return result
 
+    def replace(self, newValues, timestamp=None) -> bool:
+        changeTime = timestamp or gmtime()
+
+        result = False
+        if not isinstance(newValues, (dict, DictOfLoggedDict)):
+            raise TypeError(f"Parameter expected to be a dict or DictOfLoggedDict. Provided {type(newValues)}")
+
+        resDiff = self.diff(newValues)
+
+        if not resDiff:
+            return result
+
+        compKeys = self.compareWithOtherKeys(newValues)
+        result |= self.purge(compKeys.missing, timestamp=timestamp)
+
+        data2update = {k:newValues.get(k) for k in sorted((compKeys.new).union(compKeys.shared))}
+
+        result |= self.update(data2update,timestamp=changeTime,replaceInner=True)
+
+        if result:
+            self.timestamp = changeTime
+            self.numChanges += 1
+            self.addHistory(f"Replace {newValues}", timestamp=timestamp)
+
+        return result
+
     def addExclusion(self, *kargs, timestamp: Optional[struct_time] = None) -> bool:
         keys2add = set(chain(*kargs))
         changed = False
