@@ -5,6 +5,7 @@ from typing import Optional, Set, List, Dict, Tuple
 
 from .LoggedDict import LoggedDict
 from .LoggedValue import DATEFORMAT
+from .Misc import compareSets, SetDiff
 
 
 def _checkDeletedUpdate(func, canDiff=False):
@@ -296,18 +297,15 @@ class DictOfLoggedDict:
 
         result = DictOfLoggedDictDiff()
 
-        currentKeys = set(self.current.keys())
-        sharedKeys = set(currentKeys).intersection(other.keys())
-        missingKeys = set(currentKeys).difference(other.keys())
-        newKeys = set(other.keys()).difference(currentKeys)
+        compKeys = self.compareWithOtherKeys(other)
 
-        for k in sorted(newKeys):
+        for k in sorted(compKeys.new):
             result.addKey(k, other.get(k))
-        for k in sorted(sharedKeys):
+        for k in sorted(compKeys.shared):
             currVal = self.getV(k)
             otherVal = other.get(k) if isinstance(other, dict) else other.getV(k)
             result.change(k, currVal, otherVal)
-        for k in sorted(missingKeys):
+        for k in sorted(compKeys.missing):
             result.removeKey(k, self.getV(k))
 
         return result
@@ -354,6 +352,14 @@ class DictOfLoggedDict:
         lenTxt = f"l"":"f"{self.numChanges}"
         metadataStr = f"[t:{dateTxt} {lenTxt}]"
         return metadataStr
+
+    def compareWithOtherKeys(self, newValues) -> SetDiff:
+        if not isinstance(newValues, (dict, DictOfLoggedDict)):
+            raise TypeError(f"Parameter expected to be a dict or DictOfLoggedDict. Provided {type(newValues)}")
+
+        otherKeys = set(newValues.keys()) if isinstance(newValues, DictOfLoggedDict) else set(newValues.keys())
+        currentKeys = set(self.keys())
+        return compareSets(currentKeys, otherKeys)
 
     def __repr__(self):
         return self.show(compact=True)

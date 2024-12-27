@@ -2,8 +2,8 @@ import re
 from collections import defaultdict
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Callable, Dict, Iterable, Optional, Tuple
-
+from typing import Callable, Dict, Iterable, Optional, Tuple, Set
+from collections import namedtuple
 from dateutil import tz
 
 ####################################################################################################################
@@ -287,3 +287,13 @@ def prepareBuilderPayloadObj(
     }
 
     return result
+
+
+SetDiff = namedtuple('SetDiff',field_names= ['missing','new','shared'],defaults=[set(),set(),set()])
+
+def compareSets(oldSet:Set, newSet:Set)->SetDiff:
+    sharedKeys = set(oldSet).intersection(newSet)
+    missingKeys = set(oldSet).difference(newSet)
+    newKeys = set(newSet).difference(oldSet)
+    result =SetDiff(missing=missingKeys,shared=sharedKeys,new=newKeys)
+    return  result

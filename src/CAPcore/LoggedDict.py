@@ -3,6 +3,7 @@ from time import gmtime, struct_time
 from typing import Tuple, Set, Optional, Dict
 
 from .LoggedValue import LoggedValue
+from .Misc import compareSets, SetDiff
 
 
 class LoggedDictDiff:
@@ -169,10 +170,9 @@ class LoggedDict:
         if not isinstance(other, (dict, LoggedDict)):
             raise TypeError(f"Parameter expected to be a dict or LoggedDict. Provided {type(other)}")
 
-        missingKeys, newKeys, sharedKeys = self.compareWithOtherKeys(other)
-
-        result |= self.purge(missingKeys, timestamp=timestamp)
-        for k in sorted(newKeys.union(sharedKeys)):
+        compKeys = self.compareWithOtherKeys(other)
+        result |= self.purge(compKeys.missing, timestamp=timestamp)
+        for k in sorted((compKeys.new).union(compKeys.shared)):
             if k in self.exclusions:
                 continue
             result |= self.__setitem__(k, other.get(k), timestamp=timestamp)
@@ -189,31 +189,27 @@ class LoggedDict:
 
         result = LoggedDictDiff()
 
-        missingKeys, newKeys, sharedKeys = self.compareWithOtherKeys(newValues)
-
-        for k in sorted(newKeys):
+        compKeys = self.compareWithOtherKeys(newValues)
+        for k in sorted(compKeys.new):
             if k in self.exclusions:
                 continue
             result.addKey(k, newValues.get(k))
-        for k in sorted(sharedKeys):
+        for k in sorted(compKeys.shared):
             currVal = self.get(k)
             otherVal = newValues.get(k)
             result.change(k, currVal, otherVal)
-        for k in sorted(missingKeys):
+        for k in sorted(compKeys.missing):
             result.removeKey(k, self.get(k))
 
         return result
 
-    def compareWithOtherKeys(self, newValues) -> Tuple[Set, Set, Set]:
+    def compareWithOtherKeys(self, newValues) -> SetDiff:
         if not isinstance(newValues, (dict, LoggedDict)):
             raise TypeError(f"Parameter expected to be a dict or LoggedDict. Provided {type(newValues)}")
 
         otherKeys = set(newValues.keys()) if isinstance(newValues, LoggedDict) else set(newValues.keys())
         currentKeys = set(self.keys())
-        sharedKeys = set(currentKeys).intersection(otherKeys)
-        missingKeys = set(currentKeys).difference(otherKeys)
-        newKeys = set(otherKeys).difference(currentKeys)
-        return missingKeys, newKeys, sharedKeys
+        return compareSets(currentKeys, otherKeys)
 
     def show(self, compact=True, indent: int = 0, firstIndent: Optional[int] = None):
         if firstIndent is None:
