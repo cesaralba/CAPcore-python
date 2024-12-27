@@ -2,6 +2,7 @@ import unittest
 from time import struct_time
 
 from src.CAPcore.LoggedDict import LoggedDict
+from src.CAPcore.Misc import SetDiff
 
 
 class TestLoggedDict(unittest.TestCase):
@@ -269,39 +270,26 @@ class TestLoggedDict(unittest.TestCase):
         di1 = {'a': 1, 'b': 2, 'c': 3}
         di2 = {'b': 2, 'c': 4, 'd': 5}
 
+        exp11 = SetDiff(shared={'a','b', 'c'})
+        exp12 = SetDiff(missing={'a'},shared={'b', 'c'},new={'d'})
+
         d1 = LoggedDict()
         d1.update(di1)
         d2 = LoggedDict()
         d2.update(di2)
 
-        missingKeys, newKeys, sharedKeys = d1.compareWithOtherKeys(d2)
-        print(missingKeys, newKeys, sharedKeys)
-
-        self.assertSetEqual(missingKeys, {'a'})
-        self.assertSetEqual(sharedKeys, {'b', 'c'})
-        self.assertSetEqual(newKeys, {'d'})
-
-    def test_compareKeys2(self):
-        di1 = {'a': 1, 'b': 2, 'c': 3}
-        di2 = {'b': 2, 'c': 4, 'd': 5}
-
-        d1 = LoggedDict()
-        d1.update(di1)
-
-        missingKeys, newKeys, sharedKeys = d1.compareWithOtherKeys(di2)
-        print(missingKeys, newKeys, sharedKeys)
-        self.assertSetEqual(missingKeys, {'a'})
-        self.assertSetEqual(sharedKeys, {'b', 'c'})
-        self.assertSetEqual(newKeys, {'d'})
-
-    def test_compareKeys3(self):
-        di1 = {'a': 1, 'b': 2, 'c': 3}
-
-        d1 = LoggedDict()
-        d1.update(di1)
+        r1D1=d1.compareWithOtherKeys(d1)
+        r1d1=d1.compareWithOtherKeys(di1)
+        r1D2=d1.compareWithOtherKeys(d2)
+        r1d2=d1.compareWithOtherKeys(di2)
 
         with self.assertRaises(TypeError):
             d1.compareWithOtherKeys(5)
+
+        self.assertEqual(r1D1,exp11)
+        self.assertEqual(r1d1,exp11 )
+        self.assertEqual(r1D2,exp12)
+        self.assertEqual(r1d2,exp12 )
 
     def test_compare1(self):
         di1 = {'a': 1, 'b': 2, 'c': 3}
