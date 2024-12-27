@@ -91,6 +91,24 @@ class DictData(LoggedDict):
 
         return result
 
+    @staticmethod
+    def fromLoggedDict(data):
+        if isinstance(data,DictData):
+            return data
+        elif not isinstance(data,LoggedDict):
+            raise TypeError(f"Expected LoggedDict and got '{type(data)}'")
+        result=DictData()
+        compKeys=compareSets(set(dir(data)),set(dir(result)))
+        for attr in compKeys.shared:
+            if callable(getattr(data,attr)) or attr.startswith('__'):
+                continue
+            setattr(result,attr,getattr(data,attr))
+
+        result.last_updated = data.timestamp
+        result.addHistory(f"Imported {data}")
+
+        return result
+
     def __repr__(self):
         return self.showV(compact=True)
 
@@ -386,6 +404,34 @@ class DictOfLoggedDict:
         otherKeys = set(newValues.keys()) if isinstance(newValues, DictOfLoggedDict) else set(newValues.keys())
         currentKeys = set(self.keys())
         return compareSets(currentKeys, otherKeys)
+
+    @staticmethod
+    def updateRelease(data):
+        if not isinstance(data,DictOfLoggedDict):
+            raise TypeError(f"Expected DictOfLoggedDict and got '{type(data)}'")
+
+        newAttrs = {'history','numChanges'}
+        hasNew = all([hasattr(data, attr) for attr in newAttrs])
+        if hasNew:
+            return data
+
+        result=DictOfLoggedDict()
+        compKeys=compareSets(set(dir(data)),set(dir(result)))
+
+        fields2skip = {'current'}
+        for attr in compKeys.shared:
+            if (attr in fields2skip) or callable(getattr(data,attr)) or attr.startswith('__'):
+                continue
+            setattr(result,attr,getattr(data,attr))
+
+        for k in data.current.keys():
+            result.current[k] = DictData.fromLoggedDict(data.current[k])
+
+        result.last_updated = data.timestamp
+        result.addHistory("Updated data format")
+        result.numChanges += 1
+
+        return result
 
     def __repr__(self):
         return self.show(compact=True)
