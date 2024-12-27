@@ -84,25 +84,24 @@ class DictData(LoggedDict):
         dateTxt = strftime(DATEFORMAT, self.last_updated)
         lenTxt = f"l"":"f"{len(self.history)}"
 
-        result = (
-                    f"{super(DictData, self).show(compact=compact, indent=indent, firstIndent=firstIndent)}" + f" ("
-                                                                                                               f"t:{
-                                                                                                               dateTxt}{delTxt} {lenTxt})")
+        result = (f"{super(DictData, self).show(compact=compact, indent=indent, firstIndent=firstIndent)}" + f" ("
+                                                                                                             f"t:"
+                                                                                                             f"{dateTxt}{delTxt} {lenTxt})")
 
         return result
 
     @staticmethod
     def fromLoggedDict(data):
-        if isinstance(data,DictData):
+        if isinstance(data, DictData):
             return data
-        elif not isinstance(data,LoggedDict):
+        elif not isinstance(data, LoggedDict):
             raise TypeError(f"Expected LoggedDict and got '{type(data)}'")
-        result=DictData()
-        compKeys=compareSets(set(dir(data)),set(dir(result)))
+        result = DictData()
+        compKeys = compareSets(set(dir(data)), set(dir(result)))
         for attr in compKeys.shared:
-            if callable(getattr(data,attr)) or attr.startswith('__'):
+            if callable(getattr(data, attr)) or attr.startswith('__'):
                 continue
-            setattr(result,attr,getattr(data,attr))
+            setattr(result, attr, getattr(data, attr))
 
         result.last_updated = data.timestamp
         result.addHistory(f"Imported {data}")
@@ -266,9 +265,9 @@ class DictOfLoggedDict:
         compKeys = self.compareWithOtherKeys(newValues)
         result |= self.purge(compKeys.missing, timestamp=timestamp)
 
-        data2update = {k:newValues.get(k) for k in sorted((compKeys.new).union(compKeys.shared))}
+        data2update = {k: newValues.get(k) for k in sorted((compKeys.new).union(compKeys.shared))}
 
-        result |= self.update(data2update,timestamp=changeTime,replaceInner=True)
+        result |= self.update(data2update, timestamp=changeTime, replaceInner=True)
 
         if result:
             self.timestamp = changeTime
@@ -407,22 +406,22 @@ class DictOfLoggedDict:
 
     @staticmethod
     def updateRelease(data):
-        if not isinstance(data,DictOfLoggedDict):
+        if not isinstance(data, DictOfLoggedDict):
             raise TypeError(f"Expected DictOfLoggedDict and got '{type(data)}'")
 
-        newAttrs = {'history','numChanges'}
+        newAttrs = {'history', 'numChanges'}
         hasNew = all([hasattr(data, attr) for attr in newAttrs])
         if hasNew:
             return data
 
-        result=DictOfLoggedDict()
-        compKeys=compareSets(set(dir(data)),set(dir(result)))
+        result = DictOfLoggedDict()
+        compKeys = compareSets(set(dir(data)), set(dir(result)))
 
         fields2skip = {'current'}
         for attr in compKeys.shared:
-            if (attr in fields2skip) or callable(getattr(data,attr)) or attr.startswith('__'):
+            if (attr in fields2skip) or callable(getattr(data, attr)) or attr.startswith('__'):
                 continue
-            setattr(result,attr,getattr(data,attr))
+            setattr(result, attr, getattr(data, attr))
 
         for k in data.current.keys():
             result.current[k] = DictData.fromLoggedDict(data.current[k])
