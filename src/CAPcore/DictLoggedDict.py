@@ -84,9 +84,8 @@ class DictData(LoggedDict):
         dateTxt = strftime(DATEFORMAT, self.last_updated)
         lenTxt = f"l"":"f"{len(self.history)}"
 
-        result = (f"{super(DictData, self).show(compact=compact, indent=indent, firstIndent=firstIndent)}" + f" ("
-                                                                                                             f"t:"
-                                                                                                             f"{dateTxt}{delTxt} {lenTxt})")
+        result = (f"{super(DictData, self).show(compact=compact, indent=indent, firstIndent=firstIndent)}"
+                  f" (t:{dateTxt}{delTxt} {lenTxt})")
 
         return result
 
@@ -322,6 +321,22 @@ class DictOfLoggedDict:
     def valuesV(self):
         return self.current.values()
 
+    def renameKeys(self, keyMapping: Dict[str, str], timestamp: Optional[struct_time] = None) -> bool:
+        changeTime = timestamp or gmtime()
+
+        result = False
+
+        for k, v in self.itemsV():
+            if v.renameKeys(keyMapping=keyMapping):
+                v.addHistory(f"Renamed keys: {keyMapping}", timestamp=changeTime)
+                v.last_updated = changeTime
+                result |= True
+        if result:
+            self.addHistory(f"Renamed keys: {keyMapping}", timestamp=changeTime)
+            self.timestamp = changeTime
+
+        return result
+
     def _asdict(self):
         result = {k: v for k, v in self.items()}
         return result
@@ -334,7 +349,7 @@ class DictOfLoggedDict:
 
         return result
 
-    def diff(self, other,doUpdate:bool=False):  #:(Dict[Any,(LoggedDict,dict)],LoggedDict)
+    def diff(self, other, doUpdate: bool = False):  #:(Dict[Any,(LoggedDict,dict)],LoggedDict)
         """
         Computes the changes made if a replace or an update were to be done
         :param other: values to replace or update
@@ -353,7 +368,7 @@ class DictOfLoggedDict:
         for k in sorted(compKeys.shared):
             currVal = self.getV(k)
             otherVal = other.get(k) if isinstance(other, dict) else other.getV(k)
-            result.change(k, currVal, otherVal,doUpdate=doUpdate)
+            result.change(k, currVal, otherVal, doUpdate=doUpdate)
         for k in sorted(compKeys.missing):
             result.removeKey(k, self.getV(k))
 
@@ -452,8 +467,8 @@ class DictOfLoggedDictDiff:
         self.changed: dict = {}
         self.removed: dict = {}
 
-    def change(self, k, vOld: LoggedDict, vNew,doUpdate=False):
-        diff = vOld.diff(vNew,doUpdate=doUpdate)
+    def change(self, k, vOld: LoggedDict, vNew, doUpdate=False):
+        diff = vOld.diff(vNew, doUpdate=doUpdate)
         if diff:
             self.changed[k] = diff
             self.changeCount += 1

@@ -1,6 +1,6 @@
 from itertools import chain
 from time import gmtime, struct_time
-from typing import Tuple, Set, Optional, Dict
+from typing import Set, Optional, Dict
 
 from .LoggedValue import LoggedValue
 from .Misc import compareSets, SetDiff
@@ -178,7 +178,7 @@ class LoggedDict:
             result |= self.__setitem__(k, other.get(k), timestamp=timestamp)
         return result
 
-    def diff(self, newValues,doUpdate:bool=False) -> LoggedDictDiff:
+    def diff(self, newValues, doUpdate: bool = False) -> LoggedDictDiff:
         """
         Returns the differences between a loggedDict and another loggedDict or a dict
         :param newValues: a loggedDict or a dict
@@ -209,7 +209,7 @@ class LoggedDict:
         if not isinstance(newValues, (dict, LoggedDict)):
             raise TypeError(f"Parameter expected to be a dict or LoggedDict. Provided {type(newValues)}")
 
-        otherKeys = set(newValues.keys()) if isinstance(newValues, LoggedDict) else set(newValues.keys())
+        otherKeys = set(newValues.keys())
         currentKeys = set(self.keys())
         return compareSets(currentKeys, otherKeys)
 
@@ -232,6 +232,15 @@ class LoggedDict:
         lastLine = " " * (indent) + "}"
         result = "\n".join([firstLine, nextLines, lastLine])
         return result
+
+    def renameKeys(self, keyMapping: Dict[str, str]) -> bool:
+        compKeys = compareSets(set(self.current.keys()), set(keyMapping.keys()))
+
+        if not compKeys.shared:
+            return False
+        self.current = {keyMapping.get(k, k): v for k, v in self.itemsV()}
+
+        return True
 
     def __ne__(self, other):
         return self.diff(other)
