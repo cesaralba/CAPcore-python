@@ -349,6 +349,12 @@ class DictOfLoggedDict:
 
         return result
 
+    def extractKey(self, key, default=None):
+        result = {k: v.get(key, default=default) for k, v in self.items()}
+
+        return result
+
+
     def diff(self, other, doUpdate: bool = False):  #:(Dict[Any,(LoggedDict,dict)],LoggedDict)
         """
         Computes the changes made if a replace or an update were to be done
