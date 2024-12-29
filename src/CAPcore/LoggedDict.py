@@ -178,10 +178,11 @@ class LoggedDict:
             result |= self.__setitem__(k, other.get(k), timestamp=timestamp)
         return result
 
-    def diff(self, newValues) -> LoggedDictDiff:
+    def diff(self, newValues,doUpdate:bool=False) -> LoggedDictDiff:
         """
         Returns the differences between a loggedDict and another loggedDict or a dict
         :param newValues: a loggedDict or a dict
+               doUpdate: changes if the change was an update
         :return: a Difference object
         """
         if not isinstance(newValues, (dict, LoggedDict)):
@@ -198,8 +199,9 @@ class LoggedDict:
             currVal = self.get(k)
             otherVal = newValues.get(k)
             result.change(k, currVal, otherVal)
-        for k in sorted(compKeys.missing):
-            result.removeKey(k, self.get(k))
+        if not doUpdate:
+            for k in sorted(compKeys.missing):
+                result.removeKey(k, self.get(k))
 
         return result
 

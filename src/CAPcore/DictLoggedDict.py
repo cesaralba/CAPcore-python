@@ -334,7 +334,13 @@ class DictOfLoggedDict:
 
         return result
 
-    def diff(self, other):  #:(Dict[Any,(LoggedDict,dict)],LoggedDict)
+    def diff(self, other,doUpdate:bool=False):  #:(Dict[Any,(LoggedDict,dict)],LoggedDict)
+        """
+        Computes the changes made if a replace or an update were to be done
+        :param other: values to replace or update
+        :param doUpdate: do an Update instead of a replace
+        :return:
+        """
         if not isinstance(other, (dict, DictOfLoggedDict)):
             raise TypeError(f"Parameter expected to be a dict or DictOfLoggedDict. Provided {type(other)}")
 
@@ -347,7 +353,7 @@ class DictOfLoggedDict:
         for k in sorted(compKeys.shared):
             currVal = self.getV(k)
             otherVal = other.get(k) if isinstance(other, dict) else other.getV(k)
-            result.change(k, currVal, otherVal)
+            result.change(k, currVal, otherVal,doUpdate=doUpdate)
         for k in sorted(compKeys.missing):
             result.removeKey(k, self.getV(k))
 
@@ -446,8 +452,8 @@ class DictOfLoggedDictDiff:
         self.changed: dict = {}
         self.removed: dict = {}
 
-    def change(self, k, vOld: LoggedDict, vNew):
-        diff = vOld.diff(vNew)
+    def change(self, k, vOld: LoggedDict, vNew,doUpdate=False):
+        diff = vOld.diff(vNew,doUpdate=doUpdate)
         if diff:
             self.changed[k] = diff
             self.changeCount += 1
