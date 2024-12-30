@@ -242,6 +242,9 @@ class LoggedDict:
 
         return True
 
+    def __contains__(self, k):
+        return (k in self.current) and not self.current[k].isDeleted()
+
     def __ne__(self, other):
         return self.diff(other)
 

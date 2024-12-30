@@ -136,6 +136,7 @@ class DictData(LoggedDict):
     # __repr__=_checkDeletedRead(LoggedDict.__repr__)
     __ne__ = _checkDeletedRead(LoggedDict.__ne__)
     __eq__ = _checkDeletedRead(LoggedDict.__eq__)
+    __contains__ = _checkDeletedRead(LoggedDict.__contains__)
 
 
 class DictOfLoggedDict:
@@ -350,7 +351,7 @@ class DictOfLoggedDict:
         return result
 
     def extractKey(self, key, default=None):
-        result = {k: v.get(key, default=default) for k, v in self.items()}
+        result = {k: v.get(key, default) for k, v in self.items()}
 
         return result
 
@@ -464,6 +465,9 @@ class DictOfLoggedDict:
 
     def __ne__(self, other):
         return self.diff(other)
+
+    def __contains__(self, k):
+        return (k in self.current) and not self.current[k].isDeleted()
 
 
 class DictOfLoggedDictDiff:
