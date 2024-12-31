@@ -36,7 +36,7 @@ class LoggedDictDiff:
         """
         :return: True if objects are different, False if they are equal
         """
-        return (self.changeCount > 0)
+        return self.changeCount > 0
 
     def show(self, indent: int = 0, compact: bool = False, sepCompact=',') -> str:
         if self.changeCount == 0:
@@ -90,7 +90,7 @@ class LoggedDict:
 
     def get(self, key, default=None):
         if key in self.current and not self.current[key].isDeleted():
-            return self.__getitem__(key)
+            return self[key]
         return default
 
     def getV(self, key, default=None):
@@ -249,7 +249,7 @@ class LoggedDict:
         return self.diff(other)
 
     def __eq__(self, other):
-        return not (self.diff(other))
+        return not self.diff(other)
 
     def __repr__(self):
         return self.show(compact=True)

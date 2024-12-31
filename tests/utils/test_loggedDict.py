@@ -437,3 +437,43 @@ class TestLoggedDict(unittest.TestCase):
         expStr1 = "{}"
 
         self.assertEqual(repr(d1), expStr1)
+
+    def test_rename1(self):
+        di1 = {'a': 1, 'b': 2, 'c': 3}
+        tr1 = {'b': 'x','d':'no1'}
+        tr2 = {'d': 'x','e':'no1'}
+
+        d1 = LoggedDict()
+        d2 = LoggedDict()
+
+        d1.update(di1)
+        d2.update(di1)
+
+        r1=d1.renameKeys(tr1)
+        r2=d1.renameKeys(tr2)
+
+        ke1 = list(d1.keys())
+        ke2 = list(d2.keys())
+
+        self.assertTrue(r1)
+        self.assertFalse(r2)
+        self.assertListEqual(ke1,['a','x','c'])
+        self.assertListEqual(ke2,['a','b','c'])
+        self.assertEqual(d1['x'],2)
+        with self.assertRaises(KeyError):
+            d1['b']
+
+    def test_contains_in(self):
+        di1 = {'a': 1, 'b': 2}
+
+        d1 = LoggedDict()
+        d1.update(di1)
+        d1.purge(['b'])
+
+        r1='a' in d1
+        r2='b' in d1
+        r3='c' in d1
+
+        self.assertTrue(r1)
+        self.assertFalse(r2)
+        self.assertFalse(r3)
