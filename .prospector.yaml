@@ -1,7 +1,7 @@
 output-format: grouped
 
 strictness: veryhigh
-test-warnings: false
+test-warnings: true
 doc-warnings: false
 member-warnings: true
 inherits:
@@ -18,6 +18,7 @@ pycodestyle:
   - N802
   - N803
   - N806
+  - N815
   - N816
   - E126
 
@@ -29,3 +30,6 @@ pylint:
 
 vulture:
   run: true
+
+mccabe:
+    run: true
