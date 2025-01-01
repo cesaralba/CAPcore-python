@@ -29,7 +29,7 @@ pylint:
   - use-dict-literal
 
 vulture:
-  run: true
+  run: false
 
 mccabe:
     run: true

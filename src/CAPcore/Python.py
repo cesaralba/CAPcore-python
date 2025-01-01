@@ -1,9 +1,8 @@
 """
 Python specific functions
 """
-from importlib import import_module
-
 import sys
+from importlib import import_module
 
 
 def loadModule(moduleName: str, classLocation: str):
@@ -12,4 +11,4 @@ def loadModule(moduleName: str, classLocation: str):
     if fullModName not in sys.modules:
         import_module(fullModName, classLocation)
 
-    return fullModName,sys.modules[fullModName]
+    return fullModName, sys.modules[fullModName]

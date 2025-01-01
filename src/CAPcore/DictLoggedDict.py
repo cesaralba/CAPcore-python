@@ -202,9 +202,8 @@ class DictOfLoggedDict:
             raise KeyError(f"Requested item is deleted '{key}'")
         result = self.get(key)
 
-        changes = self.getV(key).delete(timestamp=changeTime)
-        if changes:
-            self.timestamp = changeTime
+        self.getV(key).delete(timestamp=changeTime)
+        self.timestamp = changeTime
 
         return result
 

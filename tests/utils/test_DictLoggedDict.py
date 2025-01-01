@@ -1,7 +1,8 @@
 import unittest
 from time import struct_time
 
-from src.CAPcore.DictLoggedDict import DictOfLoggedDict
+from src.CAPcore.DictLoggedDict import DictOfLoggedDict, DictData
+from src.CAPcore.LoggedDict import LoggedDict
 from src.CAPcore.Misc import SetDiff
 
 
@@ -19,6 +20,31 @@ class TestDictLoggedDict(unittest.TestCase):
     def test_constructor3(self):
         d1 = DictOfLoggedDict(exclusions={'a'})
         self.assertEqual(len(d1.exclusions), 1)
+
+    def test_setItem1(self):
+        d1 = DictOfLoggedDict()
+        dAux1 = {'a1': 1, 'a2': 'ce'}
+        dAux2 = {'a1': 1, 'a2': 'de'}
+        di1 = {'a': dAux1}
+
+        d1.update(newValues=di1)
+        LH1 = len(d1.history)
+        LD1 = LoggedDict()
+        LD1.update(dAux1)
+        DD1 = DictData()
+        DD1.update(dAux1)
+
+        d1['a'] = LD1
+        self.assertEqual(len(d1.history), LH1)
+
+        d1['a'] = DD1
+        self.assertEqual(len(d1.history), LH1)
+
+        d1['a'] = dAux1
+        self.assertEqual(len(d1.history), LH1)
+
+        d1['a'] = dAux2
+        self.assertEqual(len(d1.history), LH1 + 1)
 
     def test_update1(self):
         d1 = DictOfLoggedDict()
@@ -64,7 +90,7 @@ class TestDictLoggedDict(unittest.TestCase):
         self.assertTrue(r1)
         self.assertDictEqual(rd1, {'b': dAux1})
         with self.assertRaises(KeyError):
-            d1['a']
+            print(d1['a'])
         with self.assertRaises(KeyError):
             d1.get('a')
 
@@ -183,7 +209,7 @@ class TestDictLoggedDict(unittest.TestCase):
         d1 = DictOfLoggedDict()
 
         with self.assertRaises(KeyError):
-            v1 = d1['a']
+            print(d1['a'])
 
     def test_setitem(self):
         d1 = DictOfLoggedDict()
@@ -199,7 +225,7 @@ class TestDictLoggedDict(unittest.TestCase):
         d1['a'] = dAux1
 
         with self.assertRaises(KeyError):
-            v1 = d1.get('d')
+            print(d1.get('d'))
 
     def test_getV(self):
         d1 = DictOfLoggedDict()
@@ -232,10 +258,10 @@ class TestDictLoggedDict(unittest.TestCase):
         self.assertEqual(v2, 25)
 
         with self.assertRaises(KeyError):
-            v3 = d1.pop('d')
+            print(d1.pop('d'))
 
         with self.assertRaises(KeyError):
-            v3 = d1.pop('b')
+            print(d1.pop('b'))
 
     def test_addExclusion(self):
         d1 = DictOfLoggedDict()

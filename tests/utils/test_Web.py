@@ -7,7 +7,7 @@ Created on Dec 30, 2017
 from src.CAPcore.Web import composeURL, extractGetParams
 
 
-class TestURLmanagement(object):
+class TestURLmanagement:
 
     def test_extractGetParams(self):
         urlToTest = "http://acb.com/calendario.php?cod_competicion=SCOPA&cod_edicion=1&vd=1&vh=34"

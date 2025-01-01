@@ -61,7 +61,6 @@ class LoggedValue:
         return len(self.history)  # TODO: operaciones relativas a la historia
 
     def __eq__(self, other):
-        if isinstance(other,self.__class__):
+        if isinstance(other, self.__class__):
             return self.value == other.get()
-        else:
-            return self.value == other
+        return self.value == other

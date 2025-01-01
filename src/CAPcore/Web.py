@@ -1,5 +1,4 @@
 import logging
-import re
 from argparse import Namespace
 from collections import namedtuple
 from collections.abc import Callable
@@ -11,6 +10,9 @@ import requests
 from mechanicalsoup import StatefulBrowser
 
 from .Misc import getUTC
+
+# (connect timeout, read timeout) From https://requests.readthedocs.io/en/latest/api/#requests.request
+TIMEOUT = (180, 300)
 
 logger = logging.getLogger()
 
@@ -61,7 +63,7 @@ def downloadPage(dest, home=None, browser: Optional[StatefulBrowser] = None, con
     return DownloadedPage(source=source, data=content, timestamp=getUTC(), home=home, browser=browser, config=config)
 
 
-def downloadRawPage(dest, here=None, sanitizer: Optional[Callable[[bytes], bytes]] = None, *args, **kwargs
+def downloadRawPage(dest, *args, here=None, sanitizer: Optional[Callable[[bytes], bytes]] = None, **kwargs
                     ) -> DownloadedPage:
     """
     Descarga el contenido de una pagina y lo devuelve con metadatos
@@ -74,7 +76,7 @@ def downloadRawPage(dest, here=None, sanitizer: Optional[Callable[[bytes], bytes
 
     destURL = mergeURL(here, dest)
 
-    response = requests.get(destURL, *args, **kwargs)
+    response = requests.get(destURL, *args, timeout=TIMEOUT, **kwargs)
     response.raise_for_status()
 
     timeOut = time()
@@ -125,6 +127,7 @@ def composeURL(url, argsToAdd=None, argsToRemove=None):
 
 
 mergeURL = urljoin
+
 
 def createBrowser(config=Namespace()):
     browser = StatefulBrowser(soup_config={'features': "html.parser"}, raise_on_404=True, user_agent="Cosecha", )

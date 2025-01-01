@@ -8,29 +8,31 @@ import yaml
 from .Misc import getUTC
 from .Web import DownloadedPage
 
+DEFAULTENCODING = "utf-8"
 
-def readFile(filename: str) -> DownloadedPage:
+
+def readFile(filename: str, encoding: str = DEFAULTENCODING) -> DownloadedPage:
     if filename.endswith(".gz"):
         with gzip.open(filename, "rt") as handin:
             read_data = handin.read()
             resData = read_data
     else:
-        with open(filename, "r") as handin:
+        with open(filename, "r", encoding=encoding) as handin:
             read_data = handin.read()
             resData = ''.join(read_data)
 
     return DownloadedPage(source=filename, data=resData, timestamp=getUTC())
 
 
-def loadYAML(filename: str):
-    with open(filename, "r") as file:
+def loadYAML(filename: str, encoding: str = DEFAULTENCODING):
+    with open(filename, "r", encoding=encoding) as file:
         inHash = yaml.safe_load(file)
 
     return inHash
 
 
-def saveYAML(data, filename: str):
-    with open(filename, "w") as file:
+def saveYAML(data, filename: str, encoding: str = DEFAULTENCODING):
+    with open(filename, "w", encoding=encoding) as file:
         yaml.safe_dump(data, file, indent=2, sort_keys=True)
 
 
@@ -56,11 +58,11 @@ def shaData(data):
 def extensionFromType(dataType: str):
     if dataType in {'image/png'}:
         return 'png'
-    elif dataType in {'image/jpeg'}:
+    if dataType in {'image/jpeg'}:
         return 'jpg'
-    elif dataType in {'image/gif'}:
+    if dataType in {'image/gif'}:
         return 'gif'
-    logging.error(f"Unknown type {dataType}")
+    logging.error("Unknown type '%s'", dataType)
     raise TypeError(f"Unknown type {dataType}")
 
 
