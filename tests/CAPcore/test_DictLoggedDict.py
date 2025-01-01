@@ -197,7 +197,7 @@ class TestDictLoggedDict(unittest.TestCase):
 
         d1.update(newValues=di1)
         r1 = d1.purge('a')
-        r2 = d1.purge('a', 'b')
+        r2 = d1.purge('a', 'b', 'x')
         r3 = d1.purge('a')
 
         self.assertTrue(r1)
@@ -426,6 +426,16 @@ class TestDictLoggedDict(unittest.TestCase):
            'a2': 'ce' [t:2024-12-13 23:04:34+0000 l:1]
          } (t:2024-12-13 23:04:44+0000 D l:3)
 } [t:2024-12-13 23:04:44+0000 l:2]"""
+        expStr4F = """{ 'a':   { 'a1': 1 [t:2024-12-13 23:04:34+0000 l:1],
+           'a2': 'ce' [t:2024-12-13 23:04:34+0000 l:1]
+         } (t:2024-12-13 23:04:34+0000 l:2),
+  'b1':  { 'a1': 1 [t:2024-12-13 23:04:34+0000 l:1],
+           'a2': 'ce' [t:2024-12-13 23:04:34+0000 l:1]
+         } (t:2024-12-13 23:04:34+0000 l:2),
+  'c12': { 'a1': 1 [t:2024-12-13 23:04:34+0000 l:1],
+           'a2': 'ce' [t:2024-12-13 23:04:34+0000 l:1]
+         } (t:2024-12-13 23:04:44+0000 D l:3)
+} [t:2024-12-13 23:04:44+0000 l:2]"""
 
         d0 = DictOfLoggedDict(timestamp=time0)
         d1 = DictOfLoggedDict(timestamp=time0)
@@ -448,6 +458,7 @@ class TestDictLoggedDict(unittest.TestCase):
         r1 = d1.show(compact=False)
         r2 = d2.show(compact=False)
         r4 = d4.show(compact=False)
+        r4F = d4.show(compact=False, firstIndent=1)
 
         self.maxDiff = None
         self.assertEqual(r0C, expStr0C)
@@ -459,6 +470,7 @@ class TestDictLoggedDict(unittest.TestCase):
         self.assertEqual(r1, expStr1)
         self.assertEqual(r2, expStr2)
         self.assertEqual(r4, expStr4)
+        self.assertEqual(r4F, expStr4F)
 
         r0e = repr(d0)
         r1e = repr(d1)
@@ -467,6 +479,7 @@ class TestDictLoggedDict(unittest.TestCase):
         self.assertEqual(r0e, expStr0C)
         self.assertEqual(r1e, expStr1C)
         self.assertEqual(r4e, expStr4C)
+        self.assertEqual(expStr4F, expStr4)
 
     def test_diffShow(self):
         time0 = struct_time((2024, 12, 13, 23, 4, 24, 4, 348, 0))
@@ -563,6 +576,7 @@ class TestDictLoggedDict(unittest.TestCase):
         r1d1 = d1d1.replace(di1)
         r1D2 = d1D2.replace(d2)
         r1d2 = d1d2.replace(di2)
+        r1d2b = d1d2.replace(di2)
 
         with self.assertRaises(TypeError):
             d10.replace(25)
@@ -573,6 +587,7 @@ class TestDictLoggedDict(unittest.TestCase):
         self.assertFalse(r1d1)
         self.assertTrue(r1D2)
         self.assertTrue(r1d2)
+        self.assertFalse(r1d2b)
 
         self.assertEqual(d1D2._asdict(), di2)
         self.assertEqual(d1d2._asdict(), di2)
@@ -607,4 +622,44 @@ class TestDictLoggedDict(unittest.TestCase):
         self.assertDictEqual(d1['k2'], {'x': 2, 'c': 3, 'y': 4})
 
     def test_extractKey(self):
-        pass
+        dAux1 = {'ax': 1, 'bx': 2}
+        dAux2 = {'ax': 2, 'bx': 3}
+        dAux3 = {'bx': 4}
+
+        di1 = {'a': dAux1, 'b': dAux2, 'c': dAux3}
+
+        d1 = DictOfLoggedDict()
+        d2 = DictOfLoggedDict()
+
+        d1.update(di1)
+        d2.update(di1)
+        d2.purge('c')
+
+        r1 = d1.extractKey('ax')
+        r1d = d1.extractKey('ax', 'No')
+
+        r2 = d2.extractKey('ax')
+        r2d = d2.extractKey('ax', 'No')
+
+        self.assertDictEqual(r1, {'a': 1, 'b': 2, 'c': None})
+        self.assertDictEqual(r1d, {'a': 1, 'b': 2, 'c': 'No'})
+
+        self.assertDictEqual(r2, {'a': 1, 'b': 2})
+        self.assertDictEqual(r2d, {'a': 1, 'b': 2})
+
+    def testContainsIn(self):
+        dAux1 = {'ax': 1, 'bx': 2}
+
+        di1 = {'a': dAux1, 'b': dAux1}
+
+        d1 = DictOfLoggedDict()
+        d1.update(di1)
+        d1.purge('b')
+
+        r1 = 'a' in d1
+        r2 = 'b' in d1
+        r3 = 'c' in d1
+
+        self.assertTrue(r1)
+        self.assertFalse(r2)
+        self.assertFalse(r3)

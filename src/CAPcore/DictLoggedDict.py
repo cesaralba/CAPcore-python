@@ -256,7 +256,7 @@ class DictOfLoggedDict:
         if not isinstance(newValues, (dict, DictOfLoggedDict)):
             raise TypeError(f"Parameter expected to be a dict or DictOfLoggedDict. Provided {type(newValues)}")
 
-        resDiff = self.diff(newValues)
+        resDiff = self.diff(newValues, doUpdate=False)
 
         if not resDiff:
             return result
@@ -268,10 +268,9 @@ class DictOfLoggedDict:
 
         result |= self.update(data2update, timestamp=changeTime, replaceInner=True)
 
-        if result:
-            self.timestamp = changeTime
-            self.numChanges += 1
-            self.addHistory(f"Replace {newValues}", timestamp=timestamp)
+        self.timestamp = changeTime
+        self.numChanges += 1
+        self.addHistory(f"Replace {newValues}", timestamp=timestamp)
 
         return result
 
@@ -321,8 +320,8 @@ class DictOfLoggedDict:
     def valuesV(self):
         return self.current.values()
 
-    def renameKeys(self, keyMapping: Dict[str, str], timestamp: Optional[struct_time] = None,
-                   includeDeleted=False) -> bool:
+    def renameKeys(self, keyMapping: Dict[str, str], timestamp: Optional[struct_time] = None, includeDeleted=False
+                   ) -> bool:
         changeTime = timestamp or gmtime()
 
         result = False
@@ -388,7 +387,7 @@ class DictOfLoggedDict:
     def lenV(self):
         return len(self.current)
 
-    def show(self, compact: bool = False, indent: int = 0, firstIndent: Optional[int] = None):
+    def show(self, compact: bool = False, indent: int = 0, firstIndent: Optional[int] = None) -> str:
         if firstIndent is None:
             firstIndent = indent
 
@@ -433,9 +432,9 @@ class DictOfLoggedDict:
         currentKeys = set(self.keys())
         return compareSets(currentKeys, otherKeys)
 
-    #Function excluded from coverage as it involves a one off operation from legacy data
+    # Function excluded from coverage as it involves a one off operation from legacy data
     @staticmethod
-    def updateRelease(data): # pragma: no cover
+    def updateRelease(data):  # pragma: no cover
         if not isinstance(data, DictOfLoggedDict):
             raise TypeError(f"Expected DictOfLoggedDict and got '{type(data)}'")
 
