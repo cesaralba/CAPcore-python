@@ -4,3 +4,8 @@ python-dateutil>=2.9.0.post0
 PyYAML>=6.0.2
 setuptools~=75.6.0
 build==1.2.2.post1
+
+###
+certifi>=2024.12.14
+charset-normalizer>=3.4.1
+urllib3>=2.3.0
