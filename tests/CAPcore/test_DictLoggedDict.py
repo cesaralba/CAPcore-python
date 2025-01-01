@@ -178,32 +178,18 @@ class TestDictLoggedDict(unittest.TestCase):
     def test_purge1(self):
         d1 = DictOfLoggedDict()
         dAux1 = {'a1': 1, 'a2': 'ce'}
-        di1 = {'a': dAux1, 'b': dAux1, 'c': dAux1}
+        di1 = {'a': dAux1, 'b': dAux1, 'c': dAux1, 'ca': dAux1}
 
         d1.update(newValues=di1)
         r1 = d1.purge('a')
-        r2 = d1.purge('a', 'b')
-        r3 = d1.purge('a')
+        r2 = d1.purge('a', 'b', 'ca', 'x')
+        r3 = d1.purge('a', 'x')
 
         self.assertTrue(r1)
         self.assertTrue(r2)
         self.assertFalse(r3)
         self.assertEqual(len(d1), 1)
-
-    def test_purge2(self):
-        d1 = DictOfLoggedDict()
-        dAux1 = {'a1': 1, 'a2': 'ce'}
-        di1 = {'a': dAux1, 'b': dAux1, 'c': dAux1}
-
-        d1.update(newValues=di1)
-        r1 = d1.purge('a')
-        r2 = d1.purge('a', 'b', 'x')
-        r3 = d1.purge('a')
-
-        self.assertTrue(r1)
-        self.assertTrue(r2)
-        self.assertFalse(r3)
-        self.assertEqual(len(d1), 1)
+        self.assertNotIn('ca', d1)
 
     def test_getitem(self):
         d1 = DictOfLoggedDict()

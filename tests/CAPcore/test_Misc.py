@@ -45,8 +45,8 @@ class TestRemoveSuffix(unittest.TestCase):
         self.assertListEqual(chainKargs(), [])
         self.assertListEqual(chainKargs('a', 'ab', 1, True, None), ['a', 'ab', 1, True, None])
         self.assertListEqual(chainKargs(['a', 'ab', 1, True, None]), ['a', 'ab', 1, True, None])
-        self.assertListEqual(chainKargs(['a', ['ab', 1], (True, ['abc', 15])]),
-                             ['a', 'ab', 1, True, 'abc', 15])
+        self.assertListEqual(chainKargs(['a', ['ab', 1], (True, ['abc', 15])]), ['a', 'ab', 1, True, 'abc', 15])
+        # We need a separate test for set as order is not assured
         self.assertSetEqual(set(chainKargs([{'ab', 1}])), {'ab', 1})
 
         with self.assertRaises(TypeError):

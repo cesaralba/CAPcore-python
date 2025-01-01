@@ -1,11 +1,10 @@
 from functools import wraps
-from itertools import chain
 from time import gmtime, struct_time, strftime
 from typing import Optional, Set, List, Dict, Tuple
 
 from .LoggedDict import LoggedDict
 from .LoggedValue import DATEFORMAT
-from .Misc import compareSets, SetDiff
+from .Misc import compareSets, SetDiff, chainKargs
 
 
 def _checkDeletedUpdate(func, canDiff=False):
@@ -235,7 +234,7 @@ class DictOfLoggedDict:
     def purge(self, *kargs, timestamp: Optional[struct_time] = None):
         changeTime = timestamp or gmtime()
         result = False
-        keys2delete = set(chain(*kargs))
+        keys2delete = set(chainKargs(*kargs))
 
         for k in keys2delete:
             if k in self.current:
@@ -275,7 +274,7 @@ class DictOfLoggedDict:
         return result
 
     def addExclusion(self, *kargs, timestamp: Optional[struct_time] = None) -> bool:
-        keys2add = set(chain(*kargs))
+        keys2add = set(chainKargs(*kargs))
         changed = False
         self.exclusions.update(keys2add)
 
@@ -287,7 +286,7 @@ class DictOfLoggedDict:
         return changed
 
     def removeExclusion(self, *kargs):
-        keys2remove = set(chain(*kargs))
+        keys2remove = set(chainKargs(*kargs))
 
         self.exclusions.difference_update(keys2remove)
 

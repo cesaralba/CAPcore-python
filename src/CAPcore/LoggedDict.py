@@ -1,9 +1,8 @@
-from itertools import chain
 from time import gmtime, struct_time
 from typing import Set, Optional, Dict
 
 from .LoggedValue import LoggedValue
-from .Misc import compareSets, SetDiff
+from .Misc import compareSets, SetDiff, chainKargs
 
 
 class LoggedDictDiff:
@@ -118,7 +117,7 @@ class LoggedDict:
     def purge(self, *kargs, timestamp=None) -> bool:
         changeTime = timestamp or gmtime()
         result = False
-        keys2delete = set(chain(*kargs))
+        keys2delete = set(chainKargs(*kargs))
         for k in keys2delete:
             if k in self.current:
                 result |= self.current[k].clear(timestamp=changeTime)
@@ -126,7 +125,7 @@ class LoggedDict:
         return result
 
     def addExclusion(self, *kargs, timestamp: Optional[struct_time] = None) -> bool:
-        keys2add = set(chain(*kargs))
+        keys2add = set(chainKargs(*kargs))
         changed = False
         self.exclusions.update(keys2add)
         changed |= self.purge(keys2add, timestamp=timestamp)
@@ -134,7 +133,7 @@ class LoggedDict:
         return changed
 
     def removeExclusion(self, *kargs):
-        keys2remove = set(chain(*kargs))
+        keys2remove = set(chainKargs(*kargs))
         self.exclusions.difference_update(keys2remove)
 
     def keys(self):
