@@ -6,4 +6,4 @@ coverage:
 	coverage report -m
 
 prospectorChanges:
-	prospector $(git diff --name-only)
+	git diff --name-only | prospector

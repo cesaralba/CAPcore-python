@@ -3,7 +3,8 @@ from collections import defaultdict
 from collections import namedtuple
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Callable, Dict, Iterable, Optional, Tuple, Set
+from types import NoneType
+from typing import Callable, Dict, Iterable, Optional, Tuple, Set, Any, List
 
 from dateutil import tz
 
@@ -222,11 +223,11 @@ def UTC2local(t: datetime):
     return t.astimezone(tz.tzlocal())
 
 
-def trueF(x):
+def trueF(x: Any) -> bool:
     return True or x
 
 
-def falseF(x):
+def falseF(x: Any) -> bool:
     return False and x
 
 
@@ -267,4 +268,19 @@ def compareSets(oldSet: Set, newSet: Set) -> SetDiff:
     missingKeys = set(oldSet).difference(newSet)
     newKeys = set(newSet).difference(oldSet)
     result = SetDiff(missing=missingKeys, shared=sharedKeys, new=newKeys)
+    return result
+
+
+def chainKargs(*kargs) -> List[Any]:
+    result = []
+
+    for k in kargs:
+        if isinstance(k, (str, int, float, bool, NoneType)):
+            result.append(k)
+            continue
+        if isinstance(k, (set, list, tuple)):
+            result.extend(chainKargs(*k))
+            continue
+        raise TypeError(f"chainKargs: can't handle type '{type(k)}': {k}")
+
     return result
