@@ -433,8 +433,9 @@ class DictOfLoggedDict:
         currentKeys = set(self.keys())
         return compareSets(currentKeys, otherKeys)
 
+    #Function excluded from coverage as it involves a one off operation from legacy data
     @staticmethod
-    def updateRelease(data):
+    def updateRelease(data): # pragma: no cover
         if not isinstance(data, DictOfLoggedDict):
             raise TypeError(f"Expected DictOfLoggedDict and got '{type(data)}'")
 
