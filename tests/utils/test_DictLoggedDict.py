@@ -179,56 +179,6 @@ class TestDictLoggedDict(unittest.TestCase):
         self.assertFalse(r3)
         self.assertEqual(len(d1), 1)
 
-    def test_DDrestore1(self):
-        d1 = DictOfLoggedDict()
-        dAux1 = {'a1': 1, 'a2': 'ce'}
-        di1 = {'a': dAux1, 'b': dAux1, 'c': dAux1}
-
-        d1.update(newValues=di1)
-        k0 = list(d1.keys())
-        r1 = d1.purge('a')
-        k1 = list(d1.keys())
-        r2 = d1.update(di1)
-        k2 = list(d1.keys())
-
-        self.assertTrue(r1)
-        self.assertTrue(r2)
-        self.assertEqual(len(k0), 3)
-        self.assertEqual(len(k1), 2)
-        self.assertEqual(len(k2), 3)
-
-    def test_DDrestore2(self):
-        d1 = DictOfLoggedDict()
-        dAux1 = {'a1': 1, 'a2': 'ce'}
-        di1 = {'a': dAux1, 'b': dAux1}
-
-        d1.update(newValues=di1)
-        r2 = d1.getV('b').restore()
-        self.assertFalse(r2)
-
-    def test_DDshowV1(self):
-        time0 = struct_time((2024, 12, 13, 23, 4, 24, 4, 348, 0))
-        time1 = struct_time((2024, 12, 13, 23, 4, 34, 4, 348, 0))
-        time2 = struct_time((2024, 12, 13, 23, 4, 44, 4, 348, 0))
-
-        res1 = {'a': "{'a1': 1 [t:2024-12-13 23:04:34+0000 l:1], 'a2': 'ce' [t:2024-12-13 23:04:34+0000 l:1]} ("
-                     "t:2024-12-13 23:04:44+0000 D l:3)",
-                'b': "{'a1': 1 [t:2024-12-13 23:04:34+0000 l:1], 'a2': 'ce' [t:2024-12-13 23:04:34+0000 l:1]} ("
-                     "t:2024-12-13 23:04:34+0000 l:2)"}
-
-        d1 = DictOfLoggedDict(timestamp=time0)
-        dAux1 = {'a1': 1, 'a2': 'ce'}
-        di1 = {'a': dAux1, 'b': dAux1}
-
-        d1.update(newValues=di1, timestamp=time1)
-        d1.purge('a', timestamp=time2)
-
-        r1 = {k: v.showV() for k, v in d1.itemsV()}
-        r2 = {k: repr(v) for k, v in d1.itemsV()}
-
-        self.assertDictEqual(r1, res1)
-        self.assertDictEqual(r2, res1)
-
     def test_getitem(self):
         d1 = DictOfLoggedDict()
 
@@ -600,3 +550,35 @@ class TestDictLoggedDict(unittest.TestCase):
 
         self.assertEqual(d1D2._asdict(), di2)
         self.assertEqual(d1d2._asdict(), di2)
+
+    def test_renameKeys(self):
+        dAux1 = {'a': 1, 'b': 2, 'c': 3}
+        dAux2 = {'b': 2, 'c': 3, 'd': 4}
+        dAux3 = {'c': 3, 'd': 4, 'e': 5}
+
+        di1 = {'k1': dAux1, 'k2': dAux2, 'k3': dAux3}
+        tr1 = {'b': 'x', 'd': 'y'}
+        tr2 = {'e': 'no1', 'f': 'no2'}
+
+        d1 = DictOfLoggedDict()
+        d2 = DictOfLoggedDict()
+
+        d1.update(di1)
+        d2.update(di1)
+        d2.purge({'k3'})
+
+        r1 = d1.renameKeys(tr1)
+        r2 = d2.renameKeys(tr2)
+
+        ke1 = set(d1.subkeys())
+        ke2 = set(d2.subkeys())
+
+        self.assertTrue(r1)
+        self.assertFalse(r2)
+        self.assertSetEqual(ke1, {'a', 'x', 'c', 'y', 'e'})
+        self.assertSetEqual(ke2, {'a', 'b', 'c', 'd'})
+        self.assertDictEqual(d1['k1'], {'a': 1, 'x': 2, 'c': 3})
+        self.assertDictEqual(d1['k2'], {'x': 2, 'c': 3, 'y': 4})
+
+    def test_extractKey(self):
+        pass

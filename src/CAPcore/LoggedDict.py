@@ -221,7 +221,6 @@ class LoggedDict:
             return "{}"
         if compact or len(auxResult) == 1:
             if compact:
-                indent = 0
                 firstIndent = 0
             result = (" " * firstIndent) + "{" + ", ".join([f"'{k}': {v}" for k, v in auxResult.items()]) + "}"
             return result

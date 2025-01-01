@@ -44,7 +44,7 @@ def _checkDeletedRead(func):
 
 class DictData(LoggedDict):
     def __init__(self, timestamp: Optional[struct_time] = None, exclusions: Optional[Set] = None):
-        super(DictData, self).__init__(exclusions=exclusions)
+        super().__init__(exclusions=exclusions)
         self.last_updated = timestamp or gmtime()
         self.deleted = False
         self.history: List = []
@@ -84,7 +84,7 @@ class DictData(LoggedDict):
         dateTxt = strftime(DATEFORMAT, self.last_updated)
         lenTxt = f"l"":"f"{len(self.history)}"
 
-        result = (f"{super(DictData, self).show(compact=compact, indent=indent, firstIndent=firstIndent)}"
+        result = (f"{super().show(compact=compact, indent=indent, firstIndent=firstIndent)}"
                   f" (t:{dateTxt}{delTxt} {lenTxt})")
 
         return result
@@ -93,7 +93,7 @@ class DictData(LoggedDict):
     def fromLoggedDict(data):
         if isinstance(data, DictData):
             return data
-        elif not isinstance(data, LoggedDict):
+        if not isinstance(data, LoggedDict):
             raise TypeError(f"Expected LoggedDict and got '{type(data)}'")
         result = DictData()
         compKeys = compareSets(set(dir(data)), set(dir(result)))
@@ -196,10 +196,10 @@ class DictOfLoggedDict:
         if (key not in self.current) or (self.current[key].isDeleted()):
             if kargs:
                 return kargs[0]  # default
-            elif (key not in self.current):
+            if key not in self.current:
                 raise KeyError(f"Unknown key '{key}'")
-            else:
-                raise KeyError(f"Requested item is deleted '{key}'")
+
+            raise KeyError(f"Requested item is deleted '{key}'")
         result = self.get(key)
 
         changes = self.getV(key).delete(timestamp=changeTime)
@@ -322,12 +322,15 @@ class DictOfLoggedDict:
     def valuesV(self):
         return self.current.values()
 
-    def renameKeys(self, keyMapping: Dict[str, str], timestamp: Optional[struct_time] = None) -> bool:
+    def renameKeys(self, keyMapping: Dict[str, str], timestamp: Optional[struct_time] = None,
+                   includeDeleted=False) -> bool:
         changeTime = timestamp or gmtime()
 
         result = False
 
-        for k, v in self.itemsV():
+        for v in self.valuesV():
+            if not includeDeleted and v.isDeleted():
+                continue
             if v.renameKeys(keyMapping=keyMapping):
                 v.addHistory(f"Renamed keys: {keyMapping}", timestamp=changeTime)
                 v.last_updated = changeTime
@@ -339,7 +342,7 @@ class DictOfLoggedDict:
         return result
 
     def _asdict(self):
-        result = {k: v for k, v in self.items()}
+        result = dict(self.items())
         return result
 
     def subkeys(self):
@@ -355,7 +358,7 @@ class DictOfLoggedDict:
 
         return result
 
-    def diff(self, other, doUpdate: bool = False):  #:(Dict[Any,(LoggedDict,dict)],LoggedDict)
+    def diff(self, other, doUpdate: bool = False):
         """
         Computes the changes made if a replace or an update were to be done
         :param other: values to replace or update
@@ -403,12 +406,12 @@ class DictOfLoggedDict:
             result = "{" + ", ".join(map(lambda k: f"'{k}':{self.current[k].showV(compact, indent, firstIndent)}",
                                          claves)) + "}" + f" {metadataStr}"
         else:
-            longestK = 0 if compact else max([len(k) for k in claves])
+            longestK = 0 if compact else max(len(k) for k in claves)
             linesList = []
             flag = False
             for k in claves:
                 extraIndent = " " * (2 if flag else 0)
-                auxFirst = (longestK - len(k))
+                auxFirst = longestK - len(k)
                 auxIndent = longestK + 2 + 4
                 newLine = extraIndent + f"'{k}': " + self.current[k].showV(compact=compact, indent=auxIndent,
                                                                            firstIndent=auxFirst)
@@ -437,7 +440,7 @@ class DictOfLoggedDict:
             raise TypeError(f"Expected DictOfLoggedDict and got '{type(data)}'")
 
         newAttrs = {'history', 'numChanges'}
-        hasNew = all([hasattr(data, attr) for attr in newAttrs])
+        hasNew = all(hasattr(data, attr) for attr in newAttrs)
         if hasNew:
             return data
 
@@ -453,7 +456,7 @@ class DictOfLoggedDict:
         for k in data.current.keys():
             result.current[k] = DictData.fromLoggedDict(data.current[k])
 
-        result.last_updated = data.timestamp
+        setattr(result, 'last_updated', data.timestamp)
         result.addHistory("Updated data format")
         result.numChanges += 1
 
@@ -491,7 +494,7 @@ class DictOfLoggedDictDiff:
         self.changeCount += 1
 
     def __bool__(self):
-        return (self.changeCount > 0)
+        return self.changeCount > 0
 
     def show(self, indent: int = 0, compact: bool = False, sepCompact=','):
         if self.changeCount == 0:

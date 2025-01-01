@@ -82,6 +82,7 @@ class TestLoggedDict(unittest.TestCase):
     def test_update2(self):
         data1 = {'a': 3, 'b': 4, 'c': 5}
         data2 = {'a': 4}
+        data3 = [('a',3), ('b',5), ('c',6)]
         d1 = LoggedDict(exclusions={'a'})
         d1.update(data1)
         r1 = d1.update(data2)
@@ -89,6 +90,13 @@ class TestLoggedDict(unittest.TestCase):
         self.assertFalse(r1)
         self.assertEqual(d1['b'], 4)
         self.assertEqual(d1['c'], 5)
+
+        r2 = d1.update(data3)
+        self.assertTrue(r2)
+        self.assertEqual(d1['b'], 5)
+        self.assertEqual(d1['c'], 6)
+
+
 
     def test_purge1(self):
         data1 = {'a': 3, 'b': 4, 'c': 5}
@@ -369,6 +377,24 @@ class TestLoggedDict(unittest.TestCase):
         self.assertTrue(dif1)
         self.assertEqual(repr(dif1), expStr)
 
+    def test_compare7(self):
+        di1 = {'a': 1, 'b': 2, 'c': 3}
+        di2 = {'b': 2, 'c': 3, 'd': 5}
+        expStr1 = "'a': D '1', 'd': A '5'"
+        expStr2 = "'d': A '5'"
+
+        d1 = LoggedDict()
+        d1.update(di1)
+
+        dif1 = d1.diff(di2)
+        dif2 = d1.diff(di2,doUpdate=True)
+
+        self.assertTrue(dif1)
+        self.assertEqual(repr(dif1), expStr1)
+        self.assertTrue(dif2)
+        self.assertEqual(repr(dif2), expStr2)
+
+
     def test_compare8(self):
         di1 = {'a': 1, 'b': 2, 'c': 3}
         di2 = {'b': 2, 'c': 3, 'd': 5}
@@ -438,10 +464,55 @@ class TestLoggedDict(unittest.TestCase):
 
         self.assertEqual(repr(d1), expStr1)
 
+
+    def test_show3(self):
+        time1 = struct_time((2024, 12, 13, 23, 4, 34, 4, 348, 0))
+        time2 = struct_time((2024, 12, 13, 23, 4, 44, 4, 348, 0))
+        time3 = struct_time((2024, 12, 13, 23, 4, 54, 4, 348, 0))
+        time4 = struct_time((2024, 12, 13, 23, 4, 58, 4, 348, 0))
+
+
+        expStr1 = "{'b': 2 [t:2024-12-13 23:04:44+0000 l:1]}"
+        expStr2 = "{'b': 2 [t:2024-12-13 23:04:44+0000 l:1]}"
+        expStr3 = "{'b': 2 [t:2024-12-13 23:04:44+0000 l:1], 'c': 3 [t:2024-12-13 23:04:54+0000 l:1]}"
+        expStr4 = "{ 'b': 2 [t:2024-12-13 23:04:44+0000 l:1],\n  'c': 3 [t:2024-12-13 23:04:54+0000 l:1]\n}"
+        expStr5 = "{'b': None [t:2024-12-13 23:04:58+0000 D l:2], 'c': 3 [t:2024-12-13 23:04:54+0000 l:1]}"
+        expStr6 = "{ 'b': None [t:2024-12-13 23:04:58+0000 D l:2],\n  'c': 3 [t:2024-12-13 23:04:54+0000 l:1]\n}"
+
+        di1 = {'b': 2}
+        di2 = {'c':3 }
+
+        d1 = LoggedDict(timestamp=time1)
+        d1.update(di1,timestamp=time2)
+
+        r1C = d1.show(compact=True)
+        r1 = d1.show(compact=False)
+
+        d1.update(di2,timestamp=time3)
+        r2C = d1.show(compact=True)
+        r2 = d1.show(compact=False)
+
+        d1.purge({'b'},timestamp=time4)
+
+        r3C = d1.show(compact=True)
+        r3 = d1.show(compact=False)
+
+        print(r2C); print(expStr3)
+        print(r2); print(expStr4)
+        print(r3C); print(expStr5)
+        print(r3); print(expStr6)
+
+        self.assertEqual(r1C,expStr1)
+        self.assertEqual(r1,expStr2)
+        self.assertEqual(r2C,expStr3)
+        self.assertEqual(r2,expStr4)
+        self.assertEqual(r3C,expStr5)
+        self.assertEqual(r3,expStr6)
+
     def test_rename1(self):
         di1 = {'a': 1, 'b': 2, 'c': 3}
-        tr1 = {'b': 'x','d':'no1'}
-        tr2 = {'d': 'x','e':'no1'}
+        tr1 = {'b': 'x', 'd': 'no1'}
+        tr2 = {'d': 'x', 'e': 'no1'}
 
         d1 = LoggedDict()
         d2 = LoggedDict()
@@ -449,17 +520,17 @@ class TestLoggedDict(unittest.TestCase):
         d1.update(di1)
         d2.update(di1)
 
-        r1=d1.renameKeys(tr1)
-        r2=d1.renameKeys(tr2)
+        r1 = d1.renameKeys(tr1)
+        r2 = d1.renameKeys(tr2)
 
         ke1 = list(d1.keys())
         ke2 = list(d2.keys())
 
         self.assertTrue(r1)
         self.assertFalse(r2)
-        self.assertListEqual(ke1,['a','x','c'])
-        self.assertListEqual(ke2,['a','b','c'])
-        self.assertEqual(d1['x'],2)
+        self.assertListEqual(ke1, ['a', 'x', 'c'])
+        self.assertListEqual(ke2, ['a', 'b', 'c'])
+        self.assertEqual(d1['x'], 2)
         with self.assertRaises(KeyError):
             d1['b']
 
@@ -470,9 +541,9 @@ class TestLoggedDict(unittest.TestCase):
         d1.update(di1)
         d1.purge(['b'])
 
-        r1='a' in d1
-        r2='b' in d1
-        r3='c' in d1
+        r1 = 'a' in d1
+        r2 = 'b' in d1
+        r3 = 'c' in d1
 
         self.assertTrue(r1)
         self.assertFalse(r2)
