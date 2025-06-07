@@ -284,3 +284,16 @@ def chainKargs(*kargs) -> List[Any]:
         raise TypeError(f"chainKargs: can't handle type '{type(k)}': {k}")
 
     return result
+
+
+def cmp(a, b):
+    """
+    Compares two values that can be compared (< and > must work)
+    :param a:
+    :param b:
+    :return: 1 if a is bigger thanb, 0 if they are equal, -1 if b is bigger than a
+
+    From https://docs.python.org/3.0/whatsnew/3.0.html#ordering-comparisons
+    """
+
+    return bool(a > b) - bool(a < b)
