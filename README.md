@@ -16,4 +16,7 @@ git+https://github.com/cesaralba/CAPcore-python@develop
 ~~~
 
 You may want to replace the branch name -currently _develop_- with whichever 
-reference you want to use
+reference you want to use.
+
+We have [releases](releases)!! 
+
