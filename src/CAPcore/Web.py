@@ -133,7 +133,7 @@ def createBrowser(config=Namespace()):
     browser = StatefulBrowser(soup_config={'features': "html.parser"}, raise_on_404=True, user_agent="Cosecha", )
 
     if 'verbose' in config:
-        browser.set_verbose(config.verbose)
+        browser.set_verbose(2 if config.verbose else 0)
 
     if 'debug' in config:
         browser.set_debug(config.debug)
