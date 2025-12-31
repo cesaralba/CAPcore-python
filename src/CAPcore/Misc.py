@@ -1,10 +1,11 @@
 import re
 from collections import defaultdict
 from collections import namedtuple
+from collections.abc import Hashable
 from datetime import datetime, timezone
 from pathlib import Path
 from types import NoneType
-from typing import Callable, Dict, Iterable, Optional, Tuple, Set, Any, List
+from typing import Callable, Dict, Iterable, Optional, Tuple, Set, Any, List, Sequence, Union
 
 from dateutil import tz
 
@@ -314,3 +315,25 @@ def copyDictWithTranslation(source: Dict, translation: Optional[Dict] = None, ex
 
     result = {translation.get(k, k): v for k, v in source.items() if k not in excludes}
     return result
+
+def sortedByStringLength(data: Iterable[str], reverse: bool = False) -> Iterable[str]:
+    return sorted(data, key=lambda x: (len(x), x), reverse=reverse)
+
+
+def createDictFromGenerator(keys: Sequence[Hashable], genFunc: Union[Any, Callable]) -> Dict:
+    """
+    Creates a Dict with the result of a generator.
+    :param keys:
+    :param genFunc:
+    :return:
+    """
+
+    result = {k: genFunc() for k in keys}
+
+    return result
+
+
+def iterable2quotedString(data: Iterable[str], charQuote: str = "'", mergedStr: str = ", ") -> str:
+    result = mergedStr.join(f"{charQuote}{s}{charQuote}" for s in sorted(data))
+    return result
+
