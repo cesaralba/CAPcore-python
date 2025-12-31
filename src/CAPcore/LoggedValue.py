@@ -2,7 +2,7 @@ from datetime import datetime
 from pprint import pp
 from typing import Any, Optional
 
-from src.CAPcore.Misc import getUTC
+from .Misc import getUTC
 
 DATEFORMAT = "%Y-%m-%d %H:%M:%S.%f%z"
 
