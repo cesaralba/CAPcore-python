@@ -1,5 +1,5 @@
 import unittest
-from time import struct_time
+from datetime import datetime, timezone
 
 from src.CAPcore.DictLoggedDict import DictOfLoggedDict, LoggedDict, DictData
 
@@ -33,14 +33,15 @@ class TestDictData(unittest.TestCase):
         self.assertFalse(r2)
 
     def test_DDshowV1(self):
-        time0 = struct_time((2024, 12, 13, 23, 4, 24, 4, 348, 0))
-        time1 = struct_time((2024, 12, 13, 23, 4, 34, 4, 348, 0))
-        time2 = struct_time((2024, 12, 13, 23, 4, 44, 4, 348, 0))
+        time0 = datetime(2024, 12, 13, 23, 4, 24, 4, tzinfo=timezone.utc)
+        time1 = datetime(2024, 12, 13, 23, 4, 34, 4, tzinfo=timezone.utc)
+        time2 = datetime(2024, 12, 13, 23, 4, 44, 4, tzinfo=timezone.utc)
 
-        res1 = {'a': "{'a1': 1 [t:2024-12-13 23:04:34+0000 l:1], 'a2': 'ce' [t:2024-12-13 23:04:34+0000 l:1]} ("
-                     "t:2024-12-13 23:04:44+0000 D l:3)",
-                'b': "{'a1': 1 [t:2024-12-13 23:04:34+0000 l:1], 'a2': 'ce' [t:2024-12-13 23:04:34+0000 l:1]} ("
-                     "t:2024-12-13 23:04:34+0000 l:2)"}
+        res1 = {
+            'a': "{'a1': 1 [t:2024-12-13 23:04:34.000004+0000 l:1], 'a2': 'ce' [t:2024-12-13 23:04:34.000004+0000 l:1]}"
+                 " (t:2024-12-13 23:04:44.000004+0000 D l:3)",
+            'b': "{'a1': 1 [t:2024-12-13 23:04:34.000004+0000 l:1], 'a2': 'ce' [t:2024-12-13 23:04:34.000004+0000 l:1]}"
+                 " (t:2024-12-13 23:04:34.000004+0000 l:2)"}
 
         d1 = DictOfLoggedDict(timestamp=time0)
         dAux1 = {'a1': 1, 'a2': 'ce'}

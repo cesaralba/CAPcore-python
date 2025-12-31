@@ -1,21 +1,26 @@
-from time import gmtime, strftime
+from datetime import datetime
+from pprint import pp
+from typing import Any, Optional
 
-DATEFORMAT = "%Y-%m-%d %H:%M:%S%z"
+from src.CAPcore.Misc import getUTC
+
+DATEFORMAT = "%Y-%m-%d %H:%M:%S.%f%z"
 
 
 class LoggedValue:
-    def __init__(self, v=None, timestamp=None):
-        self.last_updated = timestamp or gmtime()
+    def __init__(self, v=None, timestamp: Optional[datetime] = None):
+        self.last_updated = timestamp or getUTC()
         self.deleted = False
         self.value = None
         self.history = []
 
         self.set(v, timestamp, change=True)
 
-    def set(self, v, timestamp=None, change=False):
+    def set(self, v: Any, timestamp: Optional[datetime] = None, change: bool = False):
         result = change
         if self.deleted or (v != self.value):
-            changeTime = timestamp or gmtime()
+            pp(self.last_updated)
+            changeTime = timestamp or getUTC()
             action = 'U'
             if self.deleted:
                 action = 'C'
@@ -24,19 +29,20 @@ class LoggedValue:
             self.deleted = False
         return result
 
-    def _set(self, v, action, changeTime):
-        if changeTime < self.last_updated:
-            raise ValueError((f"changeTime value '{strftime(DATEFORMAT, changeTime)}' is before the last"
-                              f" recorded change '{strftime(DATEFORMAT, self.last_updated)}'"))
+    def _set(self, v: Any, action: str, changeTime: datetime):
+        if changeTime.replace(microsecond=0) < self.last_updated.replace(microsecond=0):
+            raise ValueError((
+                f"changeTime value '{changeTime.strftime(DATEFORMAT)}' is before the last"
+                f" recorded change '{self.last_updated.strftime(DATEFORMAT)}'"))
         newLog = (action, changeTime, v)
         self.last_updated = changeTime
         self.value = v
         self.history.append(newLog)
 
-    def clear(self, timestamp=None):
+    def clear(self, timestamp: Optional[datetime] = None):
         if self.deleted:
             return False
-        changeTime = timestamp or gmtime()
+        changeTime = timestamp or getUTC()
         self._set(None, 'D', changeTime)
         self.deleted = True
 
@@ -52,7 +58,7 @@ class LoggedValue:
 
     def __repr__(self):
         delTxt = " D" if self.deleted else ""
-        dateTxt = strftime(DATEFORMAT, self.last_updated)
+        dateTxt = self.last_updated.strftime(DATEFORMAT)
         lenTxt = f"l"":"f"{len(self.history)}"
 
         return f"{self.value.__repr__()} [t:{dateTxt}{delTxt} {lenTxt}]"
