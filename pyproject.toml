@@ -7,7 +7,7 @@ authors = [
 ]
 description = "Support functions for CAP projects"
 readme = "README.md"
-requires-python = ">=3.14"
+requires-python = ">=3.13"
 dependencies = [
     "beautifulsoup4>=4.13.4",
     "lxml>=6.0.2",

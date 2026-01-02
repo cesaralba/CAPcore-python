@@ -1,5 +1,4 @@
 from datetime import datetime
-from pprint import pp
 from typing import Any, Optional
 
 from .Misc import getUTC
@@ -19,7 +18,6 @@ class LoggedValue:
     def set(self, v: Any, timestamp: Optional[datetime] = None, change: bool = False):
         result = change
         if self.deleted or (v != self.value):
-            pp(self.last_updated)
             changeTime = timestamp or getUTC()
             action = 'U'
             if self.deleted:
@@ -70,3 +68,13 @@ class LoggedValue:
         if isinstance(other, self.__class__):
             return self.value == other.get()
         return self.value == other
+
+
+def setNewValue(oldV: LoggedValue | Any, newVal: Any, timestamp: Optional[datetime] = None) -> Any:
+    newVal = oldV.set(newVal, timestamp=timestamp) if isinstance(oldV, LoggedValue) else newVal
+    return newVal
+
+
+def extractValue(oldV) -> Any:
+    v = oldV.get() if isinstance(oldV, LoggedValue) else oldV
+    return v
