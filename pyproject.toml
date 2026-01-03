@@ -1,7 +1,7 @@
 #https://packaging.python.org/en/latest/tutorials/packaging-projects/
 [project]
 name = "CAPcore-python"
-version = "0.2.3"
+version = "0.2.3.0"
 authors = [
     { name="Example Author", email="author@example.com" },
 ]
