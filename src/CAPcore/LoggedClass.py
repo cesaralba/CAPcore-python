@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional, Dict, Tuple, Any
+from typing import Optional, Dict, Tuple, Any, List
 
 from .Misc import getUTC
 from .Web import sentinel
@@ -18,7 +18,8 @@ class LoggedClass:
 
         if self.timestamp > timestamp:
             raise ValueError(
-                f"Trying top update in the past. Current: {self.timestamp.strftime()}. Parameter: {timestamp.strftime()}")
+                f"Trying top update in the past. Current: {self.timestamp.strftime()}. "
+                f"Parameter: {timestamp.strftime()}")
         if changeInfo:
             if timestamp not in self.changeLog:
                 self.changeLog[timestamp] = DataChanges()
@@ -29,27 +30,29 @@ class LoggedClass:
 class DataChanges:
     def __init__(self):
         self.timestamp: Optional[datetime] = None
-        self.changeSet: Dict[str, Tuple[Any, Any]] = {}
+        self.changeSet: Dict[str, List[Any]] = {}
 
     def update(self, timestamp: datetime, changeInfo: Dict[str, Tuple[Any, Any]]) -> bool:
         changes: bool = False
 
         if self.timestamp and (self.timestamp != timestamp):
             raise ValueError(
-                f"Updating a datachange set with a different timestamp. Current: {self.timestamp.strftime()}. New: {timestamp.strftime()}")
+                f"Updating a datachange set with a different timestamp. Current: {self.timestamp.strftime()}. "
+                f"New: {timestamp.strftime()}")
 
         for k, (vOld, vNew) in changeInfo.items():
             if k not in self.changeSet:
-                self.changeSet[k] = (vOld, vNew)
+                self.changeSet[k] = [vOld, vNew]
                 changes |= True
             else:
-                (currOld, currNew) = self.changeSet[k]
-                if (currOld, currNew) == (vOld, vNew):
-                    continue
-                if currNew != vOld:
+                currLast = self.changeSet[k][-1]
+                if currLast != vOld:
                     raise ValueError(
-                        f"Updating a datachange set. Breaking a transition. Key: '{k}'. Old: '{currNew}'. New: '{vOld}'")
-                self.changeSet[k] = (currOld, vNew)
+                        f"Updating a datachange set. Breaking a transition. Key: '{k}'. Old: '{currLast}'. "
+                        f"New: '{vOld}'")
+                if currLast == vNew:
+                    continue
+                self.changeSet[k].append(vNew)
                 changes |= True
 
         if changes:
