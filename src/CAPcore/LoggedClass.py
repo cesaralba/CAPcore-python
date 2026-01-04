@@ -53,7 +53,7 @@ class LoggedClass:
                     changes |= True
 
         if changes:
-            self.timestamp=timestamp
+            self.timestamp = timestamp
 
         return changes
 
