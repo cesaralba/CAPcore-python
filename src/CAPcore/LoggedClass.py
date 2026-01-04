@@ -44,13 +44,16 @@ class LoggedClass:
         changes = False
 
         for k, newVal in kwargs.items():
-            if k in excludes:
+            if k in excludes or k == 'timestamp':
                 continue
             if hasattr(self, k):
                 currVal = extractValue(getattr(self, k))
                 if currVal != newVal:
                     setattr(self, k, setNewValue(currVal, newVal=newVal, timestamp=timestamp))
                     changes |= True
+
+        if changes:
+            self.timestamp=timestamp
 
         return changes
 
