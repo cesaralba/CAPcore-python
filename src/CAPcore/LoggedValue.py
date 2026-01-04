@@ -70,13 +70,14 @@ class LoggedValue:
         return self.value == other
 
 
-def setNewValue(oldV: LoggedValue | Any, newVal:Any,timestamp:Optional[datetime]=None) -> Any:
+def setNewValue(val: LoggedValue | Any, newVal: Any, timestamp: Optional[datetime] = None) -> Any:
     result = newVal
-    if isinstance(oldV, LoggedValue):
-        oldV.set(newVal, timestamp=timestamp)
-        result=oldV
+    if isinstance(val, LoggedValue):
+        val.set(newVal, timestamp=timestamp)
+        result = val
     return result
 
-def extractValue(oldV) -> Any:
-    v = oldV.get() if isinstance(oldV, LoggedValue) else oldV
+
+def extractValue(val) -> Any:
+    v = val.get() if isinstance(val, LoggedValue) else val
     return v

@@ -1,6 +1,7 @@
 from datetime import datetime
 from typing import Optional, Dict, Tuple, Any, List, Callable
 
+from .LoggedValue import extractValue, setNewValue
 from .Misc import getUTC
 from .Web import sentinel
 
@@ -36,6 +37,23 @@ class LoggedClass:
 
         return result
 
+    def updateDataFields(self, excludes: Optional[List[str]] = sentinel, **kwargs) -> bool:
+        timestamp = kwargs['timestamp'] = kwargs.get('timestamp', getUTC())
+        if excludes is sentinel:
+            excludes = set()
+        changes = False
+
+        for k, newVal in kwargs.items():
+            if k in excludes:
+                continue
+            if hasattr(self, k):
+                currVal = extractValue(getattr(self, k))
+                if currVal != newVal:
+                    setattr(self, k, setNewValue(currVal, newVal=newVal, timestamp=timestamp))
+                    changes |= True
+
+        return changes
+
 
 class DataChanges:
     def __init__(self):
@@ -69,3 +87,20 @@ class DataChanges:
             self.timestamp = getUTC() if timestamp is None else timestamp
 
         return changes
+
+
+def diffDicts(oldDict: Dict[str, Any], newDict: Dict[str, Any]) -> Dict[str, Tuple[Any, Any]]:
+    result = {}
+
+    for k, oldV in oldDict.items():
+        newV = newDict.get(k, None)
+        if newV == oldV:
+            continue
+        result[k] = (oldV, newV)
+
+    for k, newV in newDict.items():
+        if k in oldDict:
+            continue
+        result[k] = (None, newV)
+
+    return result
