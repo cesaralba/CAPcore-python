@@ -1,5 +1,5 @@
 from datetime import datetime
-from typing import Optional, Dict, Tuple, Any, List
+from typing import Optional, Dict, Tuple, Any, List, Callable
 
 from .Misc import getUTC
 from .Web import sentinel
@@ -25,6 +25,16 @@ class LoggedClass:
                 self.changeLog[timestamp] = DataChanges()
             self.changeLog[timestamp].update(timestamp=timestamp, changeInfo=changeInfo)
             self.timestamp = timestamp
+
+    def class2dict(self, keyList: List[str], mapFunc: Optional[Callable] = None) -> Dict[str, Any]:
+        result: Dict = {}
+        for k in keyList:
+            if not hasattr(self, k):
+                continue
+            val = getattr(self, k)
+            result[k] = val if mapFunc is None else mapFunc(val)
+
+        return result
 
 
 class DataChanges:
