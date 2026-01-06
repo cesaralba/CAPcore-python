@@ -1,74 +1,10 @@
 from datetime import datetime
 from typing import Optional, Dict, Tuple, Any, List, Callable
 
+from .DataChangeLogger import DATEFORMAT, DataChangesRaw, DataChangesTuples
 from .LoggedValue import extractValue, setNewValue
 from .Misc import getUTC
 from .Web import sentinel
-
-DATEFORMAT = "%Y-%m-%d %H:%M:%S.%f%z"
-
-
-class DataChanges:
-    def __init__(self):
-        self.timestamp: Optional[datetime] = None
-        self.changeSet: Dict[str, List[Any]] = {}
-
-    def update(self, timestamp: datetime, changeInfo: Dict[str, Any]) -> bool:
-        changes: bool = False
-
-        if self.timestamp and (self.timestamp != timestamp):
-            raise ValueError(
-                f"Updating a datachange set with a different timestamp. Current: {self.timestamp.strftime(DATEFORMAT)}. "
-                f"New: {timestamp.strftime(DATEFORMAT)}")
-
-        for k, vNew in changeInfo.items():
-            if k not in self.changeSet:
-                self.changeSet[k] = vNew
-                changes |= True
-            else:
-                currLast = self.changeSet[k][-1]
-                if currLast == vNew:
-                    continue
-                self.changeSet[k].append(vNew)
-                changes |= True
-
-        if changes:
-            self.timestamp = getUTC() if timestamp is None else timestamp
-
-        return changes
-
-
-class DataChangesTuples(DataChanges):
-    def __init__(self):
-        super().__init__()
-
-    def update(self, timestamp: datetime, changeInfo: Dict[str, Tuple[Any, Any]]) -> bool:
-        changes: bool = False
-
-        if self.timestamp and (self.timestamp != timestamp):
-            raise ValueError(
-                f"Updating a datachange set with a different timestamp. Current: {self.timestamp.strftime(DATEFORMAT)}. "
-                f"New: {timestamp.strftime(DATEFORMAT)}")
-
-        for k, (vOld, vNew) in changeInfo.items():
-            if k not in self.changeSet:
-                self.changeSet[k] = [vOld, vNew]
-                changes |= True
-            else:
-                currLast = self.changeSet[k][-1]
-                if currLast != vOld:
-                    raise ValueError(
-                        f"Updating a datachange set. Breaking a transition. Key: '{k}'. Old: '{currLast}'. "
-                        f"New: '{vOld}'")
-                if currLast == vNew:
-                    continue
-                self.changeSet[k].append(vNew)
-                changes |= True
-
-        if changes:
-            self.timestamp = getUTC() if timestamp is None else timestamp
-
-        return changes
 
 
 class LoggedClass:
@@ -142,8 +78,8 @@ def diffDicts(oldDict: Dict[str, Any], newDict: Dict[str, Any]) -> Dict[str, Tup
     return result
 
 
-class LoggedClassRaw(LoggedClass):
-    changesClass = DataChanges
+def LoggedClassGenerator(dataChangeLogger=DataChangesTuples):
 
-    def __init__(self):
-        super().__init__()
+    result=LoggedClass
+    result.changesClass=dataChangeLogger
+    return result
