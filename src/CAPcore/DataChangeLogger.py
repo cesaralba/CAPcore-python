@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional, Dict, List, Any, Tuple
 
-from src.CAPcore.Misc import getUTC
+from .Misc import getUTC
 
 DATEFORMAT = "%Y-%m-%d %H:%M:%S.%f%z"
 
