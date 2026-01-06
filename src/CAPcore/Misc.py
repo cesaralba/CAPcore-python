@@ -117,7 +117,7 @@ def deepDict(dic, keys, tipoFinal):
     if len(keys) == 0:
         return dic
     if keys[0] not in dic and len(keys) == 1:
-        dic[keys[0]] = (tipoFinal)()
+        dic[keys[0]] = tipoFinal()
 
     return deepDict(dic.setdefault(keys[0], {}), keys[1:], tipoFinal)
 
@@ -132,7 +132,7 @@ def generaDefaultDict(listaClaves, tipoFinal):
 
     def actGenera(objLen, tipo):
         if objLen == 1:
-            return defaultdict((tipo))
+            return defaultdict(tipo)
 
         return defaultdict(lambda: actGenera(objLen - 1, tipo))
 
@@ -183,7 +183,7 @@ def onlySetElement(myset):
     :param myset: a set
     :return:
     """
-    return (list(myset.copy())[0] if isinstance(myset, (set, list)) and len(myset) == 1 else myset)
+    return list(myset.copy())[0] if isinstance(myset, (set, list)) and len(myset) == 1 else myset
 
 
 def cosaCorta(c1, c2):
@@ -292,7 +292,7 @@ def cmp(a, b):
     Compares two values that can be compared (< and > must work)
     :param a:
     :param b:
-    :return: 1 if a is bigger thanb, 0 if they are equal, -1 if b is bigger than a
+    :return: 1 if 'a' is bigger thanb, 0 if they are equal, -1 if 'b' is bigger than 'a'
 
     From https://docs.python.org/3.0/whatsnew/3.0.html#ordering-comparisons
     """
@@ -316,6 +316,7 @@ def copyDictWithTranslation(source: Dict, translation: Optional[Dict] = None, ex
     result = {translation.get(k, k): v for k, v in source.items() if k not in excludes}
     return result
 
+
 def sortedByStringLength(data: Iterable[str], reverse: bool = False) -> Iterable[str]:
     return sorted(data, key=lambda x: (len(x), x), reverse=reverse)
 
@@ -336,4 +337,3 @@ def createDictFromGenerator(keys: Sequence[Hashable], genFunc: Union[Any, Callab
 def iterable2quotedString(data: Iterable[str], charQuote: str = "'", mergedStr: str = ", ") -> str:
     result = mergedStr.join(f"{charQuote}{s}{charQuote}" for s in sorted(data))
     return result
-
