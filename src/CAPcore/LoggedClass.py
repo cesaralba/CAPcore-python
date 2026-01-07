@@ -1,7 +1,9 @@
 from datetime import datetime
 from typing import Optional, Dict, Tuple, Any, List, Callable
 
-from .DataChangeLogger import DATEFORMAT, DataChangesRaw, DataChangesTuples
+from .DataChangeLogger import DATEFORMAT, DataChangesTuples
+from .DictLoggedDict import DictOfLoggedDict
+from .LoggedDict import LoggedDict
 from .LoggedValue import extractValue, setNewValue
 from .Misc import getUTC
 from .Web import sentinel
@@ -51,7 +53,9 @@ class LoggedClass:
                 continue
             if hasattr(self, k):
                 currVal = extractValue(getattr(self, k))
-                if currVal != newVal:
+                if isinstance(currVal, (DictOfLoggedDict, LoggedDict)):
+                    changes |= currVal.update(newVal, timestamp=timestamp)
+                elif currVal != newVal:
                     setattr(self, k, setNewValue(currVal, newVal=newVal, timestamp=timestamp))
                     changes |= True
 
@@ -79,7 +83,6 @@ def diffDicts(oldDict: Dict[str, Any], newDict: Dict[str, Any]) -> Dict[str, Tup
 
 
 def LoggedClassGenerator(dataChangeLogger=DataChangesTuples):
-
-    result=LoggedClass
-    result.changesClass=dataChangeLogger
+    result = LoggedClass
+    result.changesClass = dataChangeLogger
     return result
