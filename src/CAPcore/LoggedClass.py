@@ -82,7 +82,7 @@ def diffDicts(oldDict: Dict[str, Any], newDict: Dict[str, Any]) -> Dict[str, Tup
     return result
 
 
-def LoggedClassGenerator(dataChangeLogger=DataChangesTuples):
+def LoggedClassGenerator(dataChangeLogger):
     result = LoggedClass
     result.changesClass = dataChangeLogger
     return result
