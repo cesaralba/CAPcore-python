@@ -10,7 +10,6 @@ from .Web import sentinel
 
 
 class LoggedClass:
-    changesClass = DataChangesTuples
 
     def __init__(self, **kwargs):
         timestamp = kwargs.get('timestamp', getUTC())
