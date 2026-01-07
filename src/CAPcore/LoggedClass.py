@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import Optional, Dict, Tuple, Any, List, Callable
 
-from .DataChangeLogger import DATEFORMAT, DataChangesTuples
+from .DataChangeLogger import DATEFORMAT
 from .DictLoggedDict import DictOfLoggedDict
 from .LoggedDict import LoggedDict
 from .LoggedValue import extractValue, setNewValue
@@ -10,6 +10,7 @@ from .Web import sentinel
 
 
 class LoggedClass:
+    changesClass = None
 
     def __init__(self, **kwargs):
         timestamp = kwargs.get('timestamp', getUTC())
@@ -82,5 +83,5 @@ def diffDicts(oldDict: Dict[str, Any], newDict: Dict[str, Any]) -> Dict[str, Tup
 
 
 def LoggedClassGenerator(dataChangeLogger):
-    result = type(f"LoggedClass{dataChangeLogger.__name__}",(LoggedClass,), {'changesClass':dataChangeLogger})
+    result = type(f"LoggedClass{dataChangeLogger.__name__}", (LoggedClass,), {'changesClass': dataChangeLogger})
     return result

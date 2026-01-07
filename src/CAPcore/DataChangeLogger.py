@@ -5,6 +5,7 @@ from .Misc import getUTC
 
 DATEFORMAT = "%Y-%m-%d %H:%M:%S.%f%z"
 
+
 class DataChanges:
     def __init__(self):
         self.timestamp: Optional[datetime] = None
@@ -13,10 +14,10 @@ class DataChanges:
     def update(self, timestamp: datetime, changeInfo: Dict[str, Any]):
         return NotImplementedError("You must use a derived class")
 
+
 class DataChangesRaw(DataChanges):
     def __init__(self):
-        self.timestamp: Optional[datetime] = None
-        self.changeSet: Dict[str, List[Any]] = {}
+        super().__init__()
 
     def update(self, timestamp: datetime, changeInfo: Dict[str, Any]) -> bool:
         changes: bool = False
@@ -28,7 +29,7 @@ class DataChangesRaw(DataChanges):
 
         for k, vNew in changeInfo.items():
             if k not in self.changeSet:
-                self.changeSet[k] = vNew
+                self.changeSet[k] = [vNew]
                 changes |= True
             else:
                 currLast = self.changeSet[k][-1]
