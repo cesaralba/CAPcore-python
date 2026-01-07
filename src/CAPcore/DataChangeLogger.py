@@ -5,8 +5,15 @@ from .Misc import getUTC
 
 DATEFORMAT = "%Y-%m-%d %H:%M:%S.%f%z"
 
+class DataChanges:
+    def __init__(self):
+        self.timestamp: Optional[datetime] = None
+        self.changeSet: Dict[str, List[Any]] = {}
 
-class DataChangesRaw:
+    def update(self, timestamp: datetime, changeInfo: Dict[str, Any]):
+        return NotImplementedError("You must use a derived class")
+
+class DataChangesRaw(DataChanges):
     def __init__(self):
         self.timestamp: Optional[datetime] = None
         self.changeSet: Dict[str, List[Any]] = {}
@@ -36,7 +43,7 @@ class DataChangesRaw:
         return changes
 
 
-class DataChangesTuples(DataChangesRaw):
+class DataChangesTuples(DataChanges):
     def __init__(self):
         super().__init__()
 
