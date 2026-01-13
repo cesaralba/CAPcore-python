@@ -64,6 +64,24 @@ class LoggedClass:
 
         return changes
 
+    def class2dictStr(self, keyList: Optional[str] = None,
+                      formatters: Optional[Dict[str, Callable[[Any], str]]] = None) -> Dict:
+        auxFormatters = formatters or {}
+        auxFormatters.update(self.funcsValClass2Str if hasattr(self, 'funcsValClass2Str') else {})
+        auxFormatters.update(self.funcsValSubClass2Str if hasattr(self, 'funcsValSubClass2Str') else {})
+
+        keyList = keyList or []
+
+        aux: Dict[str, Any] = self.class2dict(keyList=keyList, mapFunc=extractValue)
+
+        result = {k: {'value': v} for k, v in aux.items()}
+        for k, v in aux.items():
+            result[k] = {'value': v}
+            reprFunc = auxFormatters.get(k, lambda v: f"'{v}'")
+            result[k]['repr'] = reprFunc(v)
+
+        return result
+
 
 def diffDicts(oldDict: Dict[str, Any], newDict: Dict[str, Any]) -> Dict[str, Tuple[Any, Any]]:
     result = {}
