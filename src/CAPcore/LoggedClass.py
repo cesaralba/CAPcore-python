@@ -103,3 +103,21 @@ def diffDicts(oldDict: Dict[str, Any], newDict: Dict[str, Any]) -> Dict[str, Tup
 def LoggedClassGenerator(dataChangeLogger):
     result = type(f"LoggedClass{dataChangeLogger.__name__}", (LoggedClass,), {'changesClass': dataChangeLogger})
     return result
+
+
+def splitCl2Str(data: Dict) -> Tuple[Dict[str, Any], Dict[str, str]]:
+    """
+    Splits result from .class2dictStr into one with values and one with reprs
+    :param data: result from .class2dictStr
+    :return: tuple with values and reprs
+    """
+    values = {}
+    reprs = {}
+
+    for k, v in data.items():
+        val = v.get('value', None)
+        rep = v.get('repr', f"'{val}'")
+        values[k] = val
+        reprs[k] = rep
+
+    return values, reprs
