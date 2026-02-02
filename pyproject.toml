@@ -1,7 +1,7 @@
 #https://packaging.python.org/en/latest/tutorials/packaging-projects/
 [project]
 name = "CAPcore-python"
-version = "0.2.3.16"
+version = "0.2.3.17"
 authors = [
     { name="Example Author", email="author@example.com" },
 ]
@@ -9,7 +9,7 @@ description = "Support functions for CAP projects"
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
-    "beautifulsoup4>=4.13.4",
+    "beautifulsoup4>=4.13.3",
     "lxml>=6.0.2",
     "requests>=2.32.5",
     "MechanicalSoup>=1.4.0",
