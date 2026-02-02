@@ -1,5 +1,5 @@
 from datetime import datetime
-from pprint import pformat
+from pprint import pp, pformat
 from typing import Optional, Dict, List, Any, Tuple
 
 from .DictLoggedDict import DictOfLoggedDictDiff
@@ -53,10 +53,11 @@ class DataChangesRaw(DataChanges):
 
     @classmethod
     def merge(cls, *kargs):
-        if not all(isinstance(k, DataChangesRaw) for k in kargs):
+        if not all(isinstance(k, cls) for k in kargs):
             paramList = [type(v).__name__ for v in kargs]
-            message = (f"DataChanges.merge requires all parameters to be class {DataChangesRaw.__name__}. "
-                       f"Provided: [{','.join(paramList)} ")
+            statusList = [isinstance(v, cls) for v in kargs]
+            message = (f"{cls.__name__}.merge requires all parameters to be class {cls.__name__}. "
+                       f"Provided: [{','.join(str(p) for p in zip(paramList, statusList))}]")
             raise ValueError(message)
 
         result = genStoreDict()
@@ -74,6 +75,7 @@ class DataChangesRaw(DataChanges):
                         result['values'][key] = MergeLoggedDictDiff(result['values'].get(key, genStoreDict()), val,
                                                                     c.timestamp)
                     elif isinstance(val, DictOfLoggedDictDiff):
+                        pp(result)
                         result['values'][key] = MergeDictLoggedDictDiff(result['values'].get(key, genStoreDict()), val,
                                                                         c.timestamp)
                     else:
@@ -117,10 +119,11 @@ class DataChangesTuples(DataChanges):
 
     @classmethod
     def merge(cls, *kargs):
-        if not all(isinstance(k, DataChangesTuples) for k in kargs):
+        if not all(isinstance(k, cls) for k in kargs):
             paramList = [type(v).__name__ for v in kargs]
-            message = (f"DataChanges.merge requires all parameters to be class {DataChangesTuples.__name__}. "
-                       f"Provided: [{','.join(paramList)} ")
+            statusList = [isinstance(v, cls) for v in kargs]
+            message = (f"{cls.__name__}.merge requires all parameters to be class {cls.__name__}. "
+                       f"Provided: [{','.join(str(p) for p in zip(paramList, statusList))}]")
             raise ValueError(message)
 
         result = genStoreDict()
@@ -128,7 +131,6 @@ class DataChangesTuples(DataChanges):
         c: DataChangesTuples
         for c in sorted(kargs):
             result['timestamps'].append(c.timestamp)
-
             k: str
             v: Tuple[Any, Any]
             for k, v in c.changeSet.items():
@@ -148,15 +150,17 @@ def genStoreDict():
 
 def MergeLoggedDictDiff(mergedData: Dict, change2add: LoggedDictDiff, timestamp: datetime):
     for k, v in change2add.added.items():
-        mergedData[k] = updateDataSeq(currData=mergedData.get(k, genStoreValue()), newValues=(None, v),
-                                      timestamp=timestamp)
-        mergedData[k]['addedKey'] = True
+        mergedData['values'][k] = updateDataSeq(currData=mergedData['values'].get(k, genStoreValue()),
+                                                newValues=(None, v),
+                                                timestamp=timestamp)
+        mergedData['values'][k]['addedKey'] = True
 
     for k, vals in change2add.changed.items():
-        mergedData[k] = updateDataSeq(currData=mergedData.get(k, genStoreValue()), newValues=vals, timestamp=timestamp)
+        mergedData['values'][k] = updateDataSeq(currData=mergedData['values'].get(k, genStoreValue()), newValues=vals,
+                                                timestamp=timestamp)
 
     for k, v in change2add.removed.items():
-        mergedData[k]['removedKey'] = True
+        mergedData['values'][k]['removedKey'] = True
         print(f"TODO MergeLoggedDictDiff removed: {k} -> {pformat(v)}")
 
     return mergedData
@@ -175,9 +179,9 @@ def MergeDictLoggedDictDiff(mergedData: Dict, change2add: DictOfLoggedDictDiff, 
         mergedData['values'][k]['addedValue'] = True
     for k, vals in change2add.changed.items():
         mergedData['values'][k]['timestamps'].append(timestamp)
-        mergedData['values'][k]['values'] = MergeLoggedDictDiff(mergedData=mergedData['values'][k]['values'],
-                                                                change2add=vals,
-                                                                timestamp=timestamp)
+        mergedData['values'][k] = MergeLoggedDictDiff(mergedData=mergedData['values'][k],
+                                                      change2add=vals,
+                                                      timestamp=timestamp)
 
     for k, v in change2add.removed.items():
         print(f"TODO MergeDictLoggedDictDiff removed: {k} -> {pformat(v)}")
