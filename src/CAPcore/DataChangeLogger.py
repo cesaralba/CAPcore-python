@@ -1,5 +1,5 @@
 from datetime import datetime
-from pprint import pp, pformat
+from pprint import pformat
 from typing import Optional, Dict, List, Any, Tuple
 
 from .DictLoggedDict import DictOfLoggedDictDiff
