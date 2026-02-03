@@ -148,6 +148,7 @@ def genStoreDict():
 
 
 def MergeLoggedDictDiff(mergedData: Dict, change2add: LoggedDictDiff, timestamp: datetime):
+    mergedData['timestamps'].append(timestamp)
     for k, v in change2add.added.items():
         mergedData['values'][k] = updateDataSeq(currData=mergedData['values'].get(k, genStoreValue()),
                                                 newValues=(None, v),
@@ -177,7 +178,6 @@ def MergeDictLoggedDictDiff(mergedData: Dict, change2add: DictOfLoggedDictDiff, 
                 timestamp=timestamp)
         mergedData['values'][k]['addedValue'] = True
     for k, vals in change2add.changed.items():
-        mergedData['values'][k]['timestamps'].append(timestamp)
         mergedData['values'][k] = MergeLoggedDictDiff(mergedData=mergedData['values'][k],
                                                       change2add=vals,
                                                       timestamp=timestamp)
