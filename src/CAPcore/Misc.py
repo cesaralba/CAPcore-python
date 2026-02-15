@@ -1,6 +1,5 @@
 import re
-from collections import defaultdict
-from collections import namedtuple
+from collections import defaultdict, namedtuple
 from collections.abc import Hashable
 from datetime import datetime, timezone
 from pathlib import Path
@@ -337,3 +336,8 @@ def createDictFromGenerator(keys: Sequence[Hashable], genFunc: Union[Any, Callab
 def iterable2quotedString(data: Iterable[str], charQuote: str = "'", mergedStr: str = ", ") -> str:
     result = mergedStr.join(f"{charQuote}{s}{charQuote}" for s in sorted(data))
     return result
+
+
+class transDict(dict):
+    def __getitem__(self, item):
+        return self.get(item, item)

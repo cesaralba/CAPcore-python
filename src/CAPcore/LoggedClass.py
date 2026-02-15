@@ -1,11 +1,12 @@
 from datetime import datetime
 from typing import Optional, Dict, Tuple, Any, List, Callable
+from _collections import defaultdict
 
 from .DataChangeLogger import DATEFORMAT
 from .DictLoggedDict import DictOfLoggedDict
 from .LoggedDict import LoggedDict
 from .LoggedValue import extractValue, setNewValue
-from .Misc import getUTC
+from .Misc import getUTC, transDict
 from .Web import sentinel
 
 
@@ -79,6 +80,24 @@ class LoggedClass:
             result[k] = {'value': v}
             reprFunc = auxFormatters.get(k, lambda v: f"'{v}'")
             result[k]['repr'] = reprFunc(v)
+
+        return result
+
+    def getAttrFormatters(self, formatters: Optional[Dict[str, Callable[[Any], str]]] = None) -> Dict[str,
+                                                                                                      Callable[[Any],
+                                                                                                               str]]:
+        result = defaultdict(lambda: (lambda s: f"'{str(s)}'"))
+        result.update(self.funcsValClass2Str if hasattr(self, 'funcsValClass2Str') else {})
+        result.update(self.funcsValSubClass2Str if hasattr(self, 'funcsValSubClass2Str') else {})
+        result.update(formatters or {})
+
+        return result
+
+    def getAttrNameTranslator(self, translations: Optional[Dict[str, str]] = None) -> Dict[str, str]:
+        result = transDict()
+        result.update(self.transValClass if hasattr(self, 'transValClass') else {})
+        result.update(self.transValSubClass if hasattr(self, 'transValSubClass') else {})
+        result.update(translations or {})
 
         return result
 
