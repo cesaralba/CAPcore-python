@@ -25,7 +25,7 @@ class LoggedClass:
 
         if self.timestamp > timestamp:
             raise ValueError(
-                f"Trying top update in the past. Current: {self.timestamp.strftime(format=DATEFORMAT)}. "
+                f"Trying to update in the past. Current: {self.timestamp.strftime(format=DATEFORMAT)}. "
                 f"Parameter: {timestamp.strftime(format=DATEFORMAT)}")
         if changeInfo:
             if timestamp not in self.changeLog:
