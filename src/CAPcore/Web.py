@@ -11,6 +11,9 @@ from mechanicalsoup import StatefulBrowser
 
 from .Misc import getUTC
 
+# https://effbot.org/zone/default-values.htm#what-to-do-instead
+sentinel = object()
+
 # (connect timeout, read timeout) From https://requests.readthedocs.io/en/latest/api/#requests.request
 TIMEOUT = (180, 300)
 

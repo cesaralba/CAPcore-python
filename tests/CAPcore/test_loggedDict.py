@@ -1,5 +1,5 @@
 import unittest
-from time import struct_time
+from datetime import datetime, timezone
 
 from src.CAPcore.LoggedDict import LoggedDict
 from src.CAPcore.Misc import SetDiff
@@ -438,13 +438,15 @@ class TestLoggedDict(unittest.TestCase):
         self.assertEqual(len(dif1), 2)
 
     def test_show1(self):
-        time1 = struct_time((2024, 12, 13, 23, 4, 34, 4, 348, 0))
-        time2 = struct_time((2024, 12, 13, 23, 4, 44, 4, 348, 0))
+        time1 = datetime(2024, 12, 13, 23, 4, 34, 4, tzinfo=timezone.utc)
+        time2 = datetime(2024, 12, 13, 23, 4, 44, 4, tzinfo=timezone.utc)
 
         di1 = {'a': 1, 'b': 2}
 
-        expStr1 = "{'a': None [t:2024-12-13 23:04:44+0000 D l:2], 'b': 2 [t:2024-12-13 23:04:34+0000 l:1]}"
-        expStr2 = "{ 'a': None [t:2024-12-13 23:04:44+0000 D l:2],\n  'b': 2 [t:2024-12-13 23:04:34+0000 l:1]\n}"
+        expStr1 = ("{'a': None [t:2024-12-13 23:04:44.000004+0000 D l:2], "
+                   "'b': 2 [t:2024-12-13 23:04:34.000004+0000 l:1]}")
+        expStr2 = ("{ 'a': None [t:2024-12-13 23:04:44.000004+0000 D l:2],\n  "
+                   "'b': 2 [t:2024-12-13 23:04:34.000004+0000 l:1]\n}")
 
         d1 = LoggedDict()
         d1.update(di1, timestamp=time1)
@@ -461,17 +463,20 @@ class TestLoggedDict(unittest.TestCase):
         self.assertEqual(repr(d1), expStr1)
 
     def test_show3(self):
-        time1 = struct_time((2024, 12, 13, 23, 4, 34, 4, 348, 0))
-        time2 = struct_time((2024, 12, 13, 23, 4, 44, 4, 348, 0))
-        time3 = struct_time((2024, 12, 13, 23, 4, 54, 4, 348, 0))
-        time4 = struct_time((2024, 12, 13, 23, 4, 58, 4, 348, 0))
+        time1 = datetime(2024, 12, 13, 23, 4, 34, 4, tzinfo=timezone.utc)
+        time2 = datetime(2024, 12, 13, 23, 4, 44, 4, tzinfo=timezone.utc)
+        time3 = datetime(2024, 12, 13, 23, 4, 54, 4, tzinfo=timezone.utc)
+        time4 = datetime(2024, 12, 13, 23, 4, 58, 4, tzinfo=timezone.utc)
 
-        expStr1 = "{'b': 2 [t:2024-12-13 23:04:44+0000 l:1]}"
-        expStr2 = "{'b': 2 [t:2024-12-13 23:04:44+0000 l:1]}"
-        expStr3 = "{'b': 2 [t:2024-12-13 23:04:44+0000 l:1], 'c': 3 [t:2024-12-13 23:04:54+0000 l:1]}"
-        expStr4 = "{ 'b': 2 [t:2024-12-13 23:04:44+0000 l:1],\n  'c': 3 [t:2024-12-13 23:04:54+0000 l:1]\n}"
-        expStr5 = "{'b': None [t:2024-12-13 23:04:58+0000 D l:2], 'c': 3 [t:2024-12-13 23:04:54+0000 l:1]}"
-        expStr6 = "{ 'b': None [t:2024-12-13 23:04:58+0000 D l:2],\n  'c': 3 [t:2024-12-13 23:04:54+0000 l:1]\n}"
+        expStr1 = "{'b': 2 [t:2024-12-13 23:04:44.000004+0000 l:1]}"
+        expStr2 = "{'b': 2 [t:2024-12-13 23:04:44.000004+0000 l:1]}"
+        expStr3 = "{'b': 2 [t:2024-12-13 23:04:44.000004+0000 l:1], 'c': 3 [t:2024-12-13 23:04:54.000004+0000 l:1]}"
+        expStr4 = ("{ 'b': 2 [t:2024-12-13 23:04:44.000004+0000 l:1],\n  "
+                   "'c': 3 [t:2024-12-13 23:04:54.000004+0000 l:1]\n}")
+        expStr5 = ("{'b': None [t:2024-12-13 23:04:58.000004+0000 D l:2], "
+                   "'c': 3 [t:2024-12-13 23:04:54.000004+0000 l:1]}")
+        expStr6 = ("{ 'b': None [t:2024-12-13 23:04:58.000004+0000 D l:2],\n  "
+                   "'c': 3 [t:2024-12-13 23:04:54.000004+0000 l:1]\n}")
 
         di1 = {'b': 2}
         di2 = {'c': 3}

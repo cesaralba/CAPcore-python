@@ -1,8 +1,9 @@
-from time import gmtime, struct_time
+from datetime import datetime
+from time import struct_time
 from typing import Set, Optional, Dict
 
 from .LoggedValue import LoggedValue
-from .Misc import compareSets, SetDiff, chainKargs
+from .Misc import compareSets, SetDiff, chainKargs, getUTC
 
 
 class LoggedDictDiff:
@@ -62,19 +63,19 @@ class LoggedDictDiff:
 
 
 class LoggedDict:
-    def __init__(self, exclusions: Optional[Set] = None, timestamp=None):
+    def __init__(self, exclusions: Optional[Set] = None, timestamp: Optional[datetime] = None):
 
         if exclusions is not None and not isinstance(exclusions, (set, list, tuple)):
             raise TypeError(f"LoggedDict: expected set/list/tuple for exclusions: {exclusions}")
 
         self.current: Dict[LoggedValue] = {}
         self.exclusions: Set[str] = set(exclusions) if exclusions else set()
-        self.timestamp = timestamp or gmtime()
+        self.timestamp = timestamp or getUTC()
 
     def __getitem__(self, item):
         return self.current.__getitem__(item).get()
 
-    def __setitem__(self, k, v, timestamp=None):
+    def __setitem__(self, k, v, timestamp: Optional[datetime] = None):
         if k in self.exclusions:
             raise KeyError(f"Key '{k}' in exclusions: {sorted(self.exclusions)}")
         currVal = self.current.get(k, LoggedValue())  # default=
@@ -95,8 +96,8 @@ class LoggedDict:
     def getV(self, key, default=None):
         return self.current.get(key, default)
 
-    def update(self, newValues, timestamp=None):
-        changeTime = timestamp or gmtime()
+    def update(self, newValues, timestamp: Optional[datetime] = None):
+        changeTime = timestamp or getUTC()
         result = False
         newValIter = newValues
         if isinstance(newValues, dict):
@@ -114,8 +115,8 @@ class LoggedDict:
 
         return result
 
-    def purge(self, *kargs, timestamp=None) -> bool:
-        changeTime = timestamp or gmtime()
+    def purge(self, *kargs, timestamp: Optional[datetime] = None) -> bool:
+        changeTime = timestamp or getUTC()
         result = False
         keys2delete = set(chainKargs(*kargs))
         for k in keys2delete:
@@ -164,14 +165,14 @@ class LoggedDict:
         result = dict(self.items())
         return result
 
-    def replace(self, other, timestamp=None) -> bool:
+    def replace(self, other, timestamp: Optional[datetime] = None) -> bool:
         result = False
         if not isinstance(other, (dict, LoggedDict)):
             raise TypeError(f"Parameter expected to be a dict or LoggedDict. Provided {type(other)}")
 
         compKeys = self.compareWithOtherKeys(other)
         result |= self.purge(compKeys.missing, timestamp=timestamp)
-        for k in sorted((compKeys.new).union(compKeys.shared)):
+        for k in sorted(compKeys.new.union(compKeys.shared)):
             if k in self.exclusions:
                 continue
             result |= self.__setitem__(k, other.get(k), timestamp=timestamp)
