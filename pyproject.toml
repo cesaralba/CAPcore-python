@@ -15,7 +15,7 @@ dependencies = [
     "MechanicalSoup>=1.4.0",
     "python-dateutil>=2.9.0.post0",
     "PyYAML>=6.0.2",
-    "urllib3>=2.6.2"
+    "urllib3>=2.6.3"
 ]
 classifiers = [
     "License :: CAP license",
