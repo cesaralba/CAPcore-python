@@ -6,7 +6,7 @@ MechanicalSoup>=1.4.0
 python-dateutil>=2.9.0.post0
 PyYAML>=6.0.2
 setuptools>=82.0.1
-build==1.4.4
+build==1.5.0
 
 ###
 certifi>=2026.4.22
