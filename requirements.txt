@@ -10,5 +10,5 @@ build==1.5.0
 
 ###
 certifi>=2026.6.17
-charset-normalizer>=3.4.7
+charset-normalizer>=3.4.9
 urllib3>=2.6.2
