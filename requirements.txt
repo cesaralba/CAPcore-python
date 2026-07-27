@@ -9,6 +9,6 @@ setuptools>=83.0.0
 build==1.5.1
 
 ###
-certifi>=2026.6.17
+certifi>=2026.7.22
 charset-normalizer>=3.4.9
 urllib3>=2.6.2
