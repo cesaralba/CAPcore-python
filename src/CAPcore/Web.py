@@ -40,21 +40,23 @@ def downloadPage(dest, home=None, browser: Optional[StatefulBrowser] = None, con
     if browser is None:
         browser = createBrowser(config)
 
+    target=dest
+    loggerMSG = None
     if home:
-        browser.open(home)
+        if browser.url != home:
+            browser.open(home)
         target = mergeURL(home, dest)
-        logger.debug("downloadPage: home %s link  %s", home, target)
-        response = browser.open(target)
+        loggerMSG = "downloadPage: home %s link  %s" % (home, target)
     else:
-        target = dest
-        logger.debug("downloadPage: no home %s", target)
+        loggerMSG = "downloadPage: no home %s" % target
+
+    if browser.url != target:
+        logger.debug(loggerMSG)
         response = browser.open(target)
-
-    response.raise_for_status()
-
-    if sanitizer:
-        ammended = sanitizer(response.text)
-        browser.open_fake_page(ammended, target)
+        response.raise_for_status()
+        if sanitizer:
+            ammended = sanitizer(response.text)
+            browser.open_fake_page(ammended, target)
 
     source = browser.get_url()
     content = browser.get_current_page()
